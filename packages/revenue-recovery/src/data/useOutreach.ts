@@ -228,7 +228,7 @@ export const useSendMessage = () => {
           channel: "whatsapp",
           contact_phone: draft.contactPhone,
           status: "queued",
-          scheduled_for: new Date().toISOString(),
+          // No scheduled_for: the database stamps the time, so a wrong clock on a staff PC cannot delay sending.
           created_by: auth.user?.id ?? null,
           body: draft.kind === "text" ? draft.text : null,
           template_id: draft.kind === "template" ? draft.templateId : null,
@@ -250,7 +250,7 @@ export const useApproveMessages = () => {
       const { error } = await supabase
         .schema("recovery")
         .from("outreach_messages")
-        .update({ status: "queued", approved_by: auth.user?.id ?? null, scheduled_for: new Date().toISOString() })
+        .update({ status: "queued", approved_by: auth.user?.id ?? null })
         .in("id", ids)
         .eq("status", "awaiting_approval");
       if (error) throw new Error(`Could not approve: ${error.message}`);

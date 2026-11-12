@@ -41,9 +41,12 @@ class DispatchResult:
     failed: int = 0
 
 
+# Due by whichever clock is later, the engine's or the database's: rows stamped by the database must not
+# look "in the future" just because the engine's clock runs a little behind.
 DUE_SQL = """
 select id from recovery.outreach_messages
-where direction = 'outbound' and status = 'queued' and coalesce(scheduled_for, created_at) <= %(now)s
+where direction = 'outbound' and status = 'queued'
+  and coalesce(scheduled_for, created_at) <= greatest(%(now)s::timestamptz, now())
   and (%(clinic_id)s::uuid is null or clinic_id = %(clinic_id)s::uuid)
 order by coalesce(scheduled_for, created_at)
 limit %(limit)s

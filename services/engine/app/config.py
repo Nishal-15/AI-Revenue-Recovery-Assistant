@@ -23,6 +23,10 @@ class Settings(BaseSettings):
     ai_batch_size: int = 20
     # Interactive API docs at /docs; leave off in production so the endpoint list is not public.
     engine_docs: bool = False
+    # Your own number, used only by scripts/test_data.py for the 'Test · You' patient.
+    test_whatsapp_number: str | None = None
+    # Meta phone number ID; scripts/test_data.py copies it into the clinic's Settings if that is empty.
+    whatsapp_phone_number_id: str | None = None
 
 
 @lru_cache

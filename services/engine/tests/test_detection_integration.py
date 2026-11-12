@@ -106,6 +106,8 @@ def test_detects_all_four_leak_types(conn):
     assert lapsed["followup_id"] == clinic.followup
     assert lapsed["reason"] == "Crown after root canal due 12 days ago, not booked"
     assert all(item["status"] == "open" for item in found.values())
+    # Stamped with the scan's time, not the database clock, so "as soon as found" reminders are due this cycle.
+    assert all(item["detected_at"] == NOW for item in found.values())
 
 
 def test_rescanning_is_idempotent(conn):

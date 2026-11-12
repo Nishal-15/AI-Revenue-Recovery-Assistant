@@ -55,11 +55,11 @@ def list_clinic_ids(conn: Connection[Row]) -> list[UUID]:
 UPSERT_SQL = """
 insert into recovery.recovery_items as i (
   clinic_id, leak_type, source_ref, patient_id, enquiry_id, appointment_id, followup_id, task_id,
-  patient_name, contact_phone, reason, estimated_value, priority_score, due_at
+  patient_name, contact_phone, reason, estimated_value, priority_score, due_at, detected_at
 ) values (
   %(clinic_id)s, %(leak_type)s, %(source_ref)s, %(patient_id)s, %(enquiry_id)s, %(appointment_id)s,
   %(followup_id)s, %(task_id)s, %(patient_name)s, %(contact_phone)s, %(reason)s, %(estimated_value)s,
-  %(priority_score)s, %(due_at)s
+  %(priority_score)s, %(due_at)s, %(detected_at)s
 )
 on conflict (clinic_id, leak_type, source_ref) do update set
   patient_id = excluded.patient_id,
@@ -78,12 +78,18 @@ returning (xmax = 0) as inserted
 """
 
 
-def upsert_items(conn: Connection[Row], clinic_id: UUID, items: list[DetectedItem]) -> tuple[int, int]:
-    """Returns (created, updated)."""
+def upsert_items(
+    conn: Connection[Row], clinic_id: UUID, items: list[DetectedItem], now: datetime
+) -> tuple[int, int]:
+    """Returns (created, updated).
+
+    detected_at is the scan's own time, not the database clock: automation steps are timed from it
+    ("as soon as it is found"), and the planner compares against the same scan time.
+    """
     created = updated = 0
     with conn.cursor() as cursor:
         for item in items:
-            cursor.execute(UPSERT_SQL, {"clinic_id": clinic_id, **item.model_dump()})
+            cursor.execute(UPSERT_SQL, {"clinic_id": clinic_id, "detected_at": now, **item.model_dump()})
             row = cursor.fetchone()
             if row is None:
                 continue

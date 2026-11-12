@@ -22,7 +22,7 @@ def scan_clinic(conn: Connection[Row], clinic_id: UUID, now: datetime | None = N
     with conn.transaction():
         ctx = load_context(conn, clinic_id, now or datetime.now(UTC))
         resolved = resolve_items(conn, ctx)
-        created, updated = upsert_items(conn, clinic_id, detect_all(conn, ctx))
+        created, updated = upsert_items(conn, clinic_id, detect_all(conn, ctx), ctx.now)
     return ClinicScanResult(clinic_id=clinic_id, created=created, updated=updated, resolved=resolved)
 
 
