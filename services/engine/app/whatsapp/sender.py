@@ -93,10 +93,17 @@ class CloudApiSender:
             raise SendError("WhatsApp accepted the request but returned no message id") from error
 
 
+def mask_phone(digits: str) -> str:
+    """Last four digits only, so logs never hold a full patient number."""
+    return f"...{digits[-4:]}" if len(digits) > 4 else "..."
+
+
 class DryRunSender:
     """Used until Meta credentials are added: every check runs, nothing leaves the building."""
 
     def send(self, message: OutgoingMessage) -> str:
-        payload = build_payload(message)
-        logger.info("dry-run WhatsApp message to %s: %s", message.to_digits, payload)
+        build_payload(message)  # same validation as a real send
+        kind = f"template {message.template.name}" if message.template else "free-text reply"
+        # Logs reach Cloudflare's log storage, so no names, numbers or message text here.
+        logger.info("dry-run WhatsApp %s to %s", kind, mask_phone(message.to_digits))
         return f"dryrun.{uuid4().hex}"

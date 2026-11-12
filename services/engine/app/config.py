@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     gemini_api_key: SecretStr | None = None
     gemini_model: str = "gemini-3.5-flash-lite"
     ai_batch_size: int = 20
+    # Interactive API docs at /docs; leave off in production so the endpoint list is not public.
+    engine_docs: bool = False
 
 
 @lru_cache

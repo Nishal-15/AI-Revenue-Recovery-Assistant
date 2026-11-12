@@ -11,7 +11,8 @@
     "typecheck": "npm run typecheck --workspaces --if-present",
     "db:test": "node tools/test-db.mjs",
     "deploy:demo": "npm run build -w @dental-os/playground && npx --prefix deploy/cloudflare/engine wrangler pages deploy apps/playground/dist --project-name revenue-recovery-demo",
-    "deploy:engine": "npm run deploy --prefix deploy/cloudflare/engine"
+    "deploy:engine": "npm run deploy --prefix deploy/cloudflare/engine",
+    "db:setup-sql": "node tools/build-setup-sql.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.16",

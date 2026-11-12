@@ -324,6 +324,12 @@ export const demoOutreach = {
     }
   },
 
+  forget: async (phone: string): Promise<void> => {
+    await pause();
+    const current = getState();
+    current.messages = current.messages.filter((message) => !samePhone(message.contactPhone, phone));
+  },
+
   markHandled: async (ids: string[]): Promise<void> => {
     await pause();
     const now = new Date().toISOString();

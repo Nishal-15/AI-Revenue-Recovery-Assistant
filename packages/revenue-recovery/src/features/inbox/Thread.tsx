@@ -1,9 +1,10 @@
 import { useEffect, useRef } from "react";
-import { ArrowLeft, Bot, CheckCheck, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { ArrowLeft, Bot, CheckCheck, Sparkles, Trash2 } from "lucide-react";
 import { Button, ErrorBanner, Pill, cx } from "../../components/ui";
 import type { Tone } from "../../domain/leaks";
 import type { Conversation, MessageStatus, MessageTemplate, OutreachMessage, ReplyIntent } from "../../domain/outreach";
-import { useMarkHandled, useThread } from "../../data/useOutreach";
+import { useForgetContact, useMarkHandled, useThread } from "../../data/useOutreach";
 import { formatMessageTime } from "../../lib/time";
 import { Composer } from "./Composer";
 
@@ -37,6 +38,8 @@ type ThreadProps = {
 export const Thread = ({ conversation, templates, onBack, className }: ThreadProps) => {
   const { data: messages = [], isPending, isError, error } = useThread(conversation.contactPhone);
   const markHandled = useMarkHandled();
+  const forget = useForgetContact();
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const unhandledIds = messages.filter((m) => m.direction === "inbound" && m.handledAt === null).map((m) => m.id);
   const templateName = (id: string | null) => templates.find((template) => template.id === id)?.name ?? null;
@@ -67,7 +70,42 @@ export const Thread = ({ conversation, templates, onBack, className }: ThreadPro
             Mark handled
           </Button>
         )}
+        <Button
+          variant="ghost"
+          className="px-2.5"
+          aria-label="Delete this contact's data"
+          title="Delete this contact's data"
+          aria-expanded={confirmingDelete}
+          onClick={() => setConfirmingDelete(!confirmingDelete)}
+        >
+          <Trash2 size={15} />
+        </Button>
       </header>
+
+      {confirmingDelete && (
+        <div role="alertdialog" aria-label="Delete contact data" className="flex flex-wrap items-center gap-3 border-b border-rr-line bg-rr-missed-soft px-4 py-3">
+          <p className="min-w-0 flex-1 basis-64 text-[13px] text-rr-missed-ink">
+            Delete every message and enquiry from {conversation.contactName}? They will be marked as opted out so the
+            clinic never messages them again. This cannot be undone.
+          </p>
+          <Button variant="ghost" onClick={() => setConfirmingDelete(false)}>
+            Keep
+          </Button>
+          <Button
+            variant="danger"
+            disabled={forget.isPending}
+            onClick={() => forget.mutate(conversation.contactPhone, { onSuccess: onBack })}
+          >
+            <Trash2 size={15} />
+            {forget.isPending ? "Deleting…" : "Delete data"}
+          </Button>
+        </div>
+      )}
+      {forget.isError && (
+        <div className="px-3 pt-3">
+          <ErrorBanner message={forget.error.message} onDismiss={() => forget.reset()} />
+        </div>
+      )}
 
       <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto bg-rr-bg px-3 py-4 sm:px-5">
         {isError && <ErrorBanner message={error.message} />}

@@ -24,7 +24,7 @@ from tests.test_outreach_integration import (  # noqa: F401 (conn is a fixture)
     run,
 )
 
-TODAY = date(2026, 11, 12)  # NOW in the clinic's timezone
+TODAY = date(2037, 11, 12)  # NOW in the clinic's timezone
 
 pytestmark = pytest.mark.skipif(not os.environ.get("TEST_DATABASE_URL"), reason="TEST_DATABASE_URL not set")
 
@@ -171,7 +171,7 @@ def test_report_summary_for_a_staff_member(conn):
         run(conn, "set local role authenticated")
         run(conn, "select set_config('request.jwt.claim.sub', %(u)s, true)", u=str(user_id))
         report = one(conn, "select recovery.report_summary(%(c)s, %(f)s, %(t)s) as r",
-                     c=clinic.id, f=NOW - timedelta(days=1), t=NOW + timedelta(days=30))["r"]
+                     c=clinic.id, f=NOW - timedelta(days=365 * 20), t=NOW + timedelta(days=30))["r"]  # triggers stamp real time
 
     assert report["recovered_bookings"] == 2
     assert (report["new_bookings"], report["saved_appointments"]) == (1, 1)

@@ -20,7 +20,7 @@ export const CardHeader = ({ title, subtitle, action }: { title: string; subtitl
   </header>
 );
 
-type ButtonVariant = "primary" | "ghost" | "outline";
+type ButtonVariant = "primary" | "ghost" | "outline" | "danger";
 
 const BUTTON_BASE =
   "inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg px-3.5 text-[13px] font-medium whitespace-nowrap " +
@@ -31,6 +31,7 @@ const BUTTON_VARIANTS = {
   ghost: "text-rr-ink-soft hover:bg-rr-primary-soft hover:text-rr-primary-strong",
   outline:
     "border border-rr-line-strong bg-rr-surface text-rr-ink-soft hover:border-rr-primary hover:bg-rr-primary-soft hover:text-rr-primary-strong",
+  danger: "bg-rr-missed-ink text-white hover:bg-rr-missed shadow-sm",
 } as const satisfies Record<ButtonVariant, string>;
 
 export const Button = ({

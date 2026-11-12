@@ -1,6 +1,7 @@
 """Sends queued WhatsApp messages, applying every patient-protection rule first.
 
 Order of checks for each message:
+  0. stale reminder      -> cancelled if its worklist item was resolved meanwhile; deferred while snoozed
   1. opted out           -> cancelled
   2. quiet hours         -> deferred to when they end (stays queued)
   3. weekly limit        -> cancelled (automated messages only; staff can always reply)
@@ -57,11 +58,13 @@ select m.id, m.clinic_id, m.recovery_item_id, m.contact_phone, m.body, m.templat
        coalesce(s.quiet_hours_end, time '09:00') as quiet_end,
        coalesce(s.max_messages_per_week, 3) as max_per_week,
        s.whatsapp_phone_number_id,
-       t.whatsapp_template_name, t.language, t.body as template_body, t.variables, t.buttons
+       t.whatsapp_template_name, t.language, t.body as template_body, t.variables, t.buttons,
+       i.status::text as item_status, i.snoozed_until as item_snoozed_until
 from recovery.outreach_messages m
 join recovery.clinics c on c.id = m.clinic_id
 left join recovery.clinic_settings s on s.clinic_id = m.clinic_id
 left join recovery.message_templates t on t.id = m.template_id
+left join recovery.recovery_items i on i.id = m.recovery_item_id
 where m.id = %(id)s and m.status = 'queued'
 for update of m skip locked
 """
@@ -143,6 +146,16 @@ def _build_message(conn: Connection[Row], row: Row) -> tuple[OutgoingMessage, st
 def _dispatch_one(conn: Connection[Row], sender: WhatsAppSender, row: Row, now: datetime) -> str:
     """Processes one claimed message and returns the outcome name."""
     target = {"clinic_id": row["clinic_id"], "phone": row["contact_phone"]}
+
+    # An automated reminder only makes sense while its leak is still open: a patient who confirmed by
+    # phone must not then get "please confirm".
+    if row["automation_rule_id"] is not None:
+        if row["item_status"] not in ("open", "in_progress"):
+            _update(conn, row["id"], status="cancelled", error="No longer needed: the worklist item was resolved")
+            return "cancelled"
+        if row["item_snoozed_until"] is not None and row["item_snoozed_until"] > now:
+            _update(conn, row["id"], scheduled_for=row["item_snoozed_until"])
+            return "deferred"
 
     if _scalar(conn, OPTED_OUT_SQL, target):
         _update(conn, row["id"], status="cancelled", error="Patient opted out of WhatsApp")

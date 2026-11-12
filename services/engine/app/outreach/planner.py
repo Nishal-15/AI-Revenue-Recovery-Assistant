@@ -34,6 +34,7 @@ class PlanResult:
     planned: int = 0
     awaiting_approval: int = 0
     failed: int = 0
+    cancelled_stale: int = 0
 
 
 CANDIDATES_SQL = """
@@ -104,9 +105,24 @@ def choose_step(
     return candidate
 
 
+# Reminders still waiting (for approval or to be sent) whose leak has since been resolved.
+CANCEL_STALE_SQL = """
+update recovery.outreach_messages m
+set status = 'cancelled', error = 'No longer needed: the worklist item was resolved'
+where m.clinic_id = %(clinic_id)s and m.automation_rule_id is not null
+  and m.status in ('queued', 'awaiting_approval')
+  and not exists (
+    select 1 from recovery.recovery_items i
+    where i.id = m.recovery_item_id and i.status in ('open', 'in_progress')
+  )
+"""
+
+
 def plan_clinic(conn: Connection[Row], clinic_id: UUID, now: datetime) -> PlanResult:
     result = PlanResult()
     with conn.transaction(), conn.cursor() as cursor:
+        cursor.execute(CANCEL_STALE_SQL, {"clinic_id": clinic_id})
+        result.cancelled_stale = cursor.rowcount
         cursor.execute(TEMPLATES_SQL, {"clinic_id": clinic_id})
         templates = {row["id"]: row for row in cursor.fetchall()}
         cursor.execute(CANDIDATES_SQL, {"clinic_id": clinic_id, "now": now})

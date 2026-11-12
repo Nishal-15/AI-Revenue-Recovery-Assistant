@@ -90,6 +90,10 @@ export type ClinicSettings = {
   lapsedGraceDays: number;
   requireStaffApproval: boolean;
   whatsappPhoneNumberId: string | null;
+  /** When off, no patient message from this clinic is sent to Gemini. */
+  aiEnabled: boolean;
+  /** Message text and AI notes older than this are deleted; dates and statuses stay for reports. */
+  messageRetentionDays: number;
 };
 
 /** Column defaults from recovery.clinic_settings, used before a clinic saves its own. */
@@ -103,6 +107,8 @@ export const DEFAULT_CLINIC_SETTINGS: ClinicSettings = {
   lapsedGraceDays: 7,
   requireStaffApproval: true,
   whatsappPhoneNumberId: null,
+  aiEnabled: true,
+  messageRetentionDays: 365,
 };
 
 export type NewOutboundMessage =

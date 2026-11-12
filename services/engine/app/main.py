@@ -98,7 +98,15 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         app.state.pool.close()
 
 
-app = FastAPI(title="Revenue Recovery Engine", version="0.2.0", lifespan=lifespan)
+_docs = get_settings().engine_docs
+app = FastAPI(
+    title="Revenue Recovery Engine",
+    version="0.3.0",
+    lifespan=lifespan,
+    docs_url="/docs" if _docs else None,
+    redoc_url=None,
+    openapi_url="/openapi.json" if _docs else None,
+)
 
 SettingsDep = Annotated[Settings, Depends(get_settings)]
 

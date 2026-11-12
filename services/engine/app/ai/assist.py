@@ -6,6 +6,7 @@ What the AI is allowed to change on its own, and when:
   reschedule / cancel (confidence >= 0.70)                               -> item marked in progress
 Everything else is a label and a drafted reply that staff can use, edit or ignore.
 Each enquiry and message is analysed once; a failed call is retried on the next run.
+Clinics that switch AI off in Settings never have their messages sent to Gemini.
 """
 
 import asyncio
@@ -51,6 +52,7 @@ ENQUIRIES_SQL = """
 select id, message from recovery.enquiries
 where ai_classified_at is null and message is not null and received_at > %(since)s
   and (%(clinic_id)s::uuid is null or clinic_id = %(clinic_id)s::uuid)
+  and coalesce((select s.ai_enabled from recovery.clinic_settings s where s.clinic_id = enquiries.clinic_id), true)
 order by received_at
 limit %(limit)s
 """
@@ -78,6 +80,7 @@ join recovery.clinics c on c.id = m.clinic_id
 where m.direction = 'inbound' and m.ai_processed_at is null and m.handled_at is null
   and m.body is not null and m.created_at > %(since)s
   and (%(clinic_id)s::uuid is null or m.clinic_id = %(clinic_id)s::uuid)
+  and coalesce((select s.ai_enabled from recovery.clinic_settings s where s.clinic_id = m.clinic_id), true)
 order by m.created_at
 limit %(limit)s
 """

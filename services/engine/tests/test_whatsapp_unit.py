@@ -166,3 +166,16 @@ def test_next_send_time_moves_to_end_of_quiet_hours():
     assert next_send_time(early, time(21, 0), time(9, 0)) == datetime(2026, 11, 13, 9, 0, tzinfo=IST)
     assert next_send_time(midday, time(21, 0), time(9, 0)) == midday
     assert next_send_time(midday, time(12, 0), time(14, 0)) == datetime(2026, 11, 12, 14, 0, tzinfo=IST)
+
+
+def test_dry_run_log_has_no_patient_data(caplog):
+    import logging
+
+    from app.whatsapp.sender import DryRunSender
+
+    caplog.set_level(logging.INFO)
+    DryRunSender().send(TEMPLATE_MESSAGE)
+    DryRunSender().send(OutgoingMessage(to_digits="919800000001", phone_number_id="P", text="Hi Ananya, your crown"))
+    logged = caplog.text
+    assert "919800000001" not in logged and "Ananya" not in logged and "crown" not in logged
+    assert "...0001" in logged

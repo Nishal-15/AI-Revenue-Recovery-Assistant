@@ -73,6 +73,8 @@ type RawSettings = {
   lapsed_grace_days: number;
   require_staff_approval: boolean;
   whatsapp_phone_number_id: string | null;
+  ai_enabled: boolean;
+  message_retention_days: number;
 };
 
 // Postgres returns "21:00:00"; the form works in "HH:MM".
@@ -88,6 +90,8 @@ const toSettings = (raw: RawSettings): ClinicSettings => ({
   lapsedGraceDays: raw.lapsed_grace_days,
   requireStaffApproval: raw.require_staff_approval,
   whatsappPhoneNumberId: raw.whatsapp_phone_number_id,
+  aiEnabled: raw.ai_enabled,
+  messageRetentionDays: raw.message_retention_days,
 });
 
 const toSettingsRow = (settings: ClinicSettings) => ({
@@ -100,6 +104,8 @@ const toSettingsRow = (settings: ClinicSettings) => ({
   lapsed_grace_days: settings.lapsedGraceDays,
   require_staff_approval: settings.requireStaffApproval,
   whatsapp_phone_number_id: settings.whatsappPhoneNumberId?.trim() || null,
+  ai_enabled: settings.aiEnabled,
+  message_retention_days: settings.messageRetentionDays,
 });
 
 export const useClinicSettings = () => {
@@ -112,7 +118,7 @@ export const useClinicSettings = () => {
         .schema("recovery")
         .from("clinic_settings")
         .select(
-          "quiet_hours_start, quiet_hours_end, max_messages_per_week, attribution_window_days, enquiry_response_sla_minutes, unconfirmed_lookahead_hours, lapsed_grace_days, require_staff_approval, whatsapp_phone_number_id",
+          "quiet_hours_start, quiet_hours_end, max_messages_per_week, attribution_window_days, enquiry_response_sla_minutes, unconfirmed_lookahead_hours, lapsed_grace_days, require_staff_approval, whatsapp_phone_number_id, ai_enabled, message_retention_days",
         )
         .eq("clinic_id", clinicId)
         .maybeSingle();

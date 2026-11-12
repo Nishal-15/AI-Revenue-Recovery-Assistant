@@ -276,6 +276,23 @@ export const useCancelMessage = () => {
   });
 };
 
+/** Deletes a phone number's messages and enquiries and records an opt-out. Owners and managers only. */
+export const useForgetContact = () => {
+  const { supabase, clinicId } = useRecoveryContext();
+  const invalidate = useInvalidateRecovery();
+  return useMutation({
+    mutationFn: async (phone: string): Promise<void> => {
+      if (!supabase) return demoOutreach.forget(phone);
+      const { error } = await supabase.schema("recovery").rpc("forget_contact", { p_clinic_id: clinicId, p_phone: phone });
+      if (error) {
+        const message = error.code === "42501" ? "Only owners and managers can delete a contact's data." : error.message;
+        throw new Error(`Could not delete the data: ${message}`);
+      }
+    },
+    onSettled: invalidate,
+  });
+};
+
 export const useMarkHandled = () => {
   const { supabase } = useRecoveryContext();
   const invalidate = useInvalidateRecovery();

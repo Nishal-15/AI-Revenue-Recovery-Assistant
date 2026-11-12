@@ -23,7 +23,8 @@ from app.whatsapp.webhook import InboundMessage, StatusUpdate
 DATABASE_URL = os.environ.get("TEST_DATABASE_URL")
 pytestmark = pytest.mark.skipif(not DATABASE_URL, reason="TEST_DATABASE_URL not set")
 
-NOW = datetime(2026, 11, 12, 6, 0, tzinfo=UTC)  # 11:30 in Asia/Kolkata, outside quiet hours
+NOW = datetime(2037, 11, 12, 6, 0, tzinfo=UTC)  # 11:30 in Asia/Kolkata, outside quiet hours. A future date: rows the database stamps with the real
+# clock must always look older than "now" in these tests (13 Nov 2037 is a Friday, like 13 Nov 2026).
 IST = ZoneInfo("Asia/Kolkata")
 
 Conn = psycopg.Connection[dict[str, Any]]
@@ -165,16 +166,16 @@ def test_approval_gate(conn):
 def test_quiet_hours_defer_until_morning(conn):
     clinic = Clinic(conn)
     clinic.detect_and_plan()
-    night = datetime(2026, 11, 12, 22, 0, tzinfo=IST)
+    night = datetime(2037, 11, 12, 22, 0, tzinfo=IST)
 
     result = dispatch_for(clinic, FakeSender(), night)
 
     assert result.deferred == 1
     [message] = clinic.outbound()
     assert message["status_text"] == "queued"
-    assert message["scheduled_for"] == datetime(2026, 11, 13, 9, 0, tzinfo=IST)
+    assert message["scheduled_for"] == datetime(2037, 11, 13, 9, 0, tzinfo=IST)
     assert dispatch_for(clinic, FakeSender(), night + timedelta(minutes=5)).deferred == 0  # not due again until 09:00
-    assert dispatch_for(clinic, FakeSender(), datetime(2026, 11, 13, 9, 1, tzinfo=IST)).sent == 1
+    assert dispatch_for(clinic, FakeSender(), datetime(2037, 11, 13, 9, 1, tzinfo=IST)).sent == 1
 
 
 def test_opted_out_patients_are_never_messaged(conn):

@@ -18,6 +18,7 @@ from app.detection.repository import list_clinic_ids
 from app.detection.scan import scan_clinic
 from app.outreach.dispatcher import DispatchResult, dispatch_due
 from app.outreach.planner import PlanResult, plan_clinic
+from app.privacy import RetentionResult, apply_retention
 from app.whatsapp.sender import WhatsAppSender
 
 logger = logging.getLogger(__name__)
@@ -31,6 +32,7 @@ class ClinicCycle:
     scan: ClinicScanResult
     attribution: AttributionResult
     plan: PlanResult
+    retention: RetentionResult
 
 
 def run_clinic_cycle(conn: Connection[dict[str, Any]], clinic_id: UUID, now: datetime) -> ClinicCycle:
@@ -38,7 +40,8 @@ def run_clinic_cycle(conn: Connection[dict[str, Any]], clinic_id: UUID, now: dat
     scan = scan_clinic(conn, clinic_id, now)
     attribution = attribute_bookings(conn, clinic_id, now)
     plan = plan_clinic(conn, clinic_id, now)
-    return ClinicCycle(clinic_id=clinic_id, scan=scan, attribution=attribution, plan=plan)
+    retention = apply_retention(conn, clinic_id, now)
+    return ClinicCycle(clinic_id=clinic_id, scan=scan, attribution=attribution, plan=plan, retention=retention)
 
 
 def run_detection_cycle(pool: Pool, now: datetime | None = None) -> list[ClinicCycle]:

@@ -64,3 +64,9 @@ def test_webhook_rejects_bad_signature():
     finally:
         app.dependency_overrides.clear()
     assert response.status_code == 403
+
+
+def test_api_docs_are_off_by_default():
+    assert Settings(_env_file=None).engine_docs is False
+    response = TestClient(app).get("/docs")
+    assert response.status_code == 404 or Settings().engine_docs

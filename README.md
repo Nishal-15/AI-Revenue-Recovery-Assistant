@@ -254,6 +254,21 @@ running** (wrangler builds the image), and a Supabase project.
 
 Logs: `npm run tail --prefix deploy/cloudflare/engine`.
 
+## Privacy and security
+
+| Area | What is in place |
+|---|---|
+| Access | Row Level Security on every table: staff see only their own clinic. Anonymous visitors cannot call any database function. |
+| Integrity | Staff can only queue outbound messages and approve or cancel them, and only change workflow fields (status, snooze, note) on worklist items. Delivery status, inbound messages, AI output, leak values and recovered bookings are written only by the engine, so reports cannot be inflated from the browser. Approvals always record the real approver. |
+| AI | Per-clinic switch (Settings → Privacy). When on, message text and the patient's first name go to Gemini; phone numbers never do. Use Gemini's paid tier for patient data. |
+| Retention | Message text and AI notes are deleted after the clinic's retention period (default 365 days); dates and statuses stay so reports still add up. |
+| Erasure | Owners and managers can delete a contact's messages and enquiries from the WhatsApp inbox (trash icon), or with `select recovery.forget_contact('<clinic id>', '<phone>');`. An opt-out is kept so the number is never contacted again; the audit log records counts, not the number. Patient records belong to the Dental OS and are not touched. |
+| Logs | No names, phone numbers or message text in engine logs; the web server access log is off (the webhook verification URL carries a token). |
+| Secrets | Keys live in `services/engine/.env` (git-ignored) and Cloudflare Worker secrets. The engine API docs (`/docs`) are off unless `ENGINE_DOCS=true`. |
+
+**Updating an existing database:** `npm run db:setup-sql -- --from 8` writes `supabase/setup_update.sql` with only the newer
+migrations; paste it into the SQL Editor. New projects use `npm run db:setup-sql` → `supabase/setup_all_in_one.sql`.
+
 ## Mounting inside the Dental OS
 
 ```tsx

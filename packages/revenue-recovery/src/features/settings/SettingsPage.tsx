@@ -32,6 +32,7 @@ type NumberField = keyof Pick<
   | "enquiryResponseSlaMinutes"
   | "unconfirmedLookaheadHours"
   | "lapsedGraceDays"
+  | "messageRetentionDays"
 >;
 
 type SettingsFormProps = {
@@ -113,6 +114,28 @@ const SettingsForm = ({ initial, justSaved, onSaved, onEdit }: SettingsFormProps
         <Field label="Credit bookings to outreach for (days)" hint="1 to 90. Used for recovered revenue.">
           {(id) => (
             <input id={id} type="number" min={1} max={90} required value={form.attributionWindowDays} onChange={(e) => setNumber("attributionWindowDays")(e.target.value)} className={INPUT} />
+          )}
+        </Field>
+      </Section>
+
+      <Section title="Privacy" subtitle="What leaves the clinic, and how long message text is kept.">
+        <div className="flex items-start justify-between gap-4 sm:col-span-2">
+          <div>
+            <p className="text-sm font-medium">AI assistance (Google Gemini)</p>
+            <p className="text-xs text-rr-ink-faint">
+              When on, patients' WhatsApp messages and enquiries are sent to Google Gemini to label them and draft
+              replies. Phone numbers are never sent. Turn off to keep all message text inside the clinic's systems.
+            </p>
+          </div>
+          <Switch
+            checked={form.aiEnabled}
+            onToggle={() => set("aiEnabled", !form.aiEnabled)}
+            label="AI assistance (Google Gemini)"
+          />
+        </div>
+        <Field label="Keep message text for (days)" hint="30 to 3650. Older text and AI notes are deleted; dates stay for reports.">
+          {(id) => (
+            <input id={id} type="number" min={30} max={3650} required value={form.messageRetentionDays} onChange={(e) => setNumber("messageRetentionDays")(e.target.value)} className={INPUT} />
           )}
         </Field>
       </Section>
