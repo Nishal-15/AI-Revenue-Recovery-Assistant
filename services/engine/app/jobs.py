@@ -11,6 +11,7 @@ from psycopg_pool import ConnectionPool
 
 from app.ai.assist import AssistResult, run_ai_assist
 from app.ai.llm import GeminiLlm
+from app.attribution import AttributionResult, attribute_bookings
 from app.config import Settings
 from app.detection.models import ClinicScanResult
 from app.detection.repository import list_clinic_ids
@@ -28,13 +29,16 @@ Pool = ConnectionPool[Connection[dict[str, Any]]]
 class ClinicCycle:
     clinic_id: UUID
     scan: ClinicScanResult
+    attribution: AttributionResult
     plan: PlanResult
 
 
 def run_clinic_cycle(conn: Connection[dict[str, Any]], clinic_id: UUID, now: datetime) -> ClinicCycle:
+    # Order matters: a booking found by attribution closes its lead before any new reminder is planned.
     scan = scan_clinic(conn, clinic_id, now)
+    attribution = attribute_bookings(conn, clinic_id, now)
     plan = plan_clinic(conn, clinic_id, now)
-    return ClinicCycle(clinic_id=clinic_id, scan=scan, plan=plan)
+    return ClinicCycle(clinic_id=clinic_id, scan=scan, attribution=attribution, plan=plan)
 
 
 def run_detection_cycle(pool: Pool, now: datetime | None = None) -> list[ClinicCycle]:

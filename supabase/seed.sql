@@ -75,7 +75,7 @@ from generate_series(1, 56) as n;
 
 -- Each recovered item gets the completed appointment it produced, and the attribution row.
 with recovered as (
-  select id, patient_id, estimated_value, resolved_at, gen_random_uuid() as appointment_id
+  select id, patient_id, estimated_value, resolved_at, leak_type, gen_random_uuid() as appointment_id
   from recovery.recovery_items
   where status = 'recovered'
 ),
@@ -86,8 +86,9 @@ booked as (
   from recovered
   returning id
 )
-insert into recovery.recovered_bookings (clinic_id, appointment_id, recovery_item_id, patient_id, value, booked_at)
-select '00000000-0000-0000-0000-00000000c001', r.appointment_id, r.id, r.patient_id, r.estimated_value, r.resolved_at
+insert into recovery.recovered_bookings (clinic_id, appointment_id, recovery_item_id, patient_id, value, booked_at, rule, leak_type)
+select '00000000-0000-0000-0000-00000000c001', r.appointment_id, r.id, r.patient_id, r.estimated_value, r.resolved_at,
+       case when r.leak_type = 'unconfirmed_appointment' then 'saved_appointment' else 'new_booking' end, r.leak_type
 from recovered r
 join booked b on b.id = r.appointment_id;
 

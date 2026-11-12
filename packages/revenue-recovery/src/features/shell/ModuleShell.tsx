@@ -5,6 +5,7 @@ import { ConfirmationsPage } from "../confirmations/ConfirmationsPage";
 import { DashboardPage } from "../dashboard/DashboardPage";
 import { InboxPage } from "../inbox/InboxPage";
 import { RecallsPage } from "../recalls/RecallsPage";
+import { ReportsPage } from "../reports/ReportsPage";
 import { SettingsPage } from "../settings/SettingsPage";
 import { WorklistPage } from "../worklist/WorklistPage";
 import { SECTION_IDS, SECTIONS, type SectionId } from "./sections";
@@ -69,6 +70,8 @@ const SectionContent = ({ section }: { section: SectionId }) => {
       return <InboxPage />;
     case "automations":
       return <AutomationsPage />;
+    case "reports":
+      return <ReportsPage />;
     case "settings":
       return <SettingsPage />;
     default:

@@ -32,7 +32,7 @@ export const SECTIONS = {
   recalls: { label: "Recalls", icon: UserRoundSearch, plannedPhase: null },
   inbox: { label: "WhatsApp inbox", icon: MessagesSquare, plannedPhase: null },
   automations: { label: "Automations", icon: Workflow, plannedPhase: null },
-  reports: { label: "Reports", icon: BarChart3, plannedPhase: 4 },
+  reports: { label: "Reports", icon: BarChart3, plannedPhase: null },
   settings: { label: "Settings", icon: Settings2, plannedPhase: null },
 } as const satisfies Record<SectionId, Section>;
 

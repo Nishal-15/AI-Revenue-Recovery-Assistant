@@ -2,6 +2,7 @@
 
 Runs beside Supabase with a privileged database connection:
   detection   finds revenue leaks and keeps recovery_items in sync           (POST /jobs/scan)
+  attribution credits bookings made after outreach to recovered revenue      (part of /jobs/scan)
   planning    turns automation sequences into outbound WhatsApp messages     (part of /jobs/scan)
   dispatch    sends queued messages within consent, quiet-hour and limit rules (POST /jobs/dispatch)
   webhook     receives replies, button taps and delivery receipts           (POST /webhooks/whatsapp)

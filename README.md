@@ -151,6 +151,29 @@ New clinics get these templates and sequences with `select recovery.install_defa
 
 With `ENABLE_SCHEDULER=true` the engine dispatches every minute and scans every `SCAN_INTERVAL_MINUTES`.
 
+## Recovered revenue (attribution)
+
+Every scan also credits bookings to outreach (`services/engine/app/attribution.py`). A *touch* is a WhatsApp message
+that was sent, or a staff member starting or recovering a worklist item.
+
+| Rule | Counts when | Value |
+|---|---|---|
+| New booking | The patient books a new appointment within the attribution window (Settings, default 14 days) after a touch. Matched by patient record or phone number, so an enquiry who becomes a patient counts. | The appointment's value, else the item's estimate |
+| Saved appointment | An unconfirmed appointment is confirmed or attended after a reminder or staff action on it | The appointment's value |
+
+- If several touches qualify, credit goes to the most recent lead (enquiry, recall, callback) before an appointment reminder.
+- A credited appointment that is later **cancelled or a no-show is removed**, so the total only counts visits that happen.
+- Marking an item "Recovered" by hand adds no revenue unless a booking exists.
+- The booking closes the lead it came from (item recovered, enquiry marked booked).
+
+The **Reports** tab shows, for this month, last month or 90 days:
+- recovered revenue and bookings (new and saved);
+- the recovery rate;
+- what was handled without staff;
+- a per-leak breakdown;
+- the WhatsApp funnel (sent → delivered → read → replied);
+- every recovered booking with the message that brought it back, exportable as CSV.
+
 ## AI assistance (Gemini)
 
 With `GEMINI_API_KEY` set, every few minutes the engine:
@@ -254,5 +277,5 @@ import "@dental-os/revenue-recovery/style.css";
 | 2 | WhatsApp Cloud API: templates, sending, inbound webhook, consent, quiet hours, automations | done |
 | 3 | Gemini: enquiry classification, reply intent, drafted replies, AI-informed priority | done |
 | – | Cloudflare deployment: Worker + Container engine, Pages demo | ready (needs your account) |
-| 4 | Booking attribution, reports, polish | next |
-| 5 | Connect to the Dental OS, pilot with one clinic | |
+| 4 | Booking attribution, Reports tab, CSV export | done |
+| 5 | Connect to the Dental OS, pilot with one clinic | next |

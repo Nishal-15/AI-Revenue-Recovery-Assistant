@@ -107,7 +107,8 @@
     font-weight: inherit;
   }
 
-  .rr-root ul {
+  .rr-root ul,
+  .rr-root ol {
     list-style: none;
   }
 }
