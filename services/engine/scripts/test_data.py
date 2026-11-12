@@ -3,6 +3,7 @@
     .venv/Scripts/python -m scripts.test_data add       add test patients and run one cycle
     .venv/Scripts/python -m scripts.test_data status    show what the engine found and planned
     .venv/Scripts/python -m scripts.test_data send      approve and send ONLY the message to your number
+    .venv/Scripts/python -m scripts.test_data link      open that message in your own WhatsApp, ready to send
     .venv/Scripts/python -m scripts.test_data remove    delete every test row
 
 Only the "Test · You" patient gets a phone number: TEST_WHATSAPP_NUMBER from .env (your own number).
@@ -12,8 +13,10 @@ Never prints your phone number.
 """
 
 import sys
+import webbrowser
 from datetime import UTC, date, datetime, timedelta
 from typing import Any
+from urllib.parse import quote
 from uuid import UUID
 
 import psycopg
@@ -191,6 +194,31 @@ def send(conn: Conn) -> None:
         print("Check WhatsApp on your phone.")
 
 
+def link(conn: Conn) -> None:
+    """Opens WhatsApp's official click-to-chat link with the prepared reminder text. You press Send yourself."""
+    your_number = get_settings().test_whatsapp_number
+    if not your_number:
+        raise SystemExit("Set TEST_WHATSAPP_NUMBER in .env first (your own WhatsApp number).")
+    clinic = first_clinic(conn)
+    with conn.cursor() as cursor:
+        cursor.execute("""select m.body from recovery.outreach_messages m
+                          join recovery.recovery_items i on i.id = m.recovery_item_id
+                          where m.clinic_id = %(c)s and m.direction = 'outbound' and m.body is not null
+                            and i.patient_name like %(p)s
+                            and recovery.phone_digits(m.contact_phone) = recovery.phone_digits(%(your)s)
+                          order by m.created_at desc limit 1""",
+                       {"c": clinic["id"], "p": f"{PREFIX}%", "your": your_number})
+        row = cursor.fetchone()
+    if row is None:
+        raise SystemExit("No test message for your number yet: run 'add' first.")
+    digits = "".join(ch for ch in your_number if ch.isdigit())
+    url = f"https://wa.me/{digits}?text={quote(row['body'])}"
+    webbrowser.open(url)  # the number is in the link, so it is opened, never printed
+    print(f"Opened WhatsApp with the reminder for {masked(your_number)}:")
+    print(f"  {row['body']}")
+    print("Press Send in WhatsApp. Buttons (Confirm / Reschedule) only appear when sent through the Meta API.")
+
+
 def remove(conn: Conn) -> None:
     clinic = first_clinic(conn)
     params = {"c": clinic["id"], "m": MARK, "p": f"{PREFIX}%", "your": get_settings().test_whatsapp_number or ""}
@@ -212,13 +240,13 @@ def remove(conn: Conn) -> None:
 
 def main() -> int:
     command = sys.argv[1] if len(sys.argv) > 1 else "status"
-    if command not in ("add", "status", "send", "remove"):
+    if command not in ("add", "status", "send", "link", "remove"):
         print(__doc__)
         return 1
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
     with connect() as conn:
-        {"add": add, "status": status, "send": send, "remove": remove}[command](conn)
+        {"add": add, "status": status, "send": send, "link": link, "remove": remove}[command](conn)
     return 0
 
 
