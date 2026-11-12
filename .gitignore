@@ -8,3 +8,4 @@ __pycache__/
 .pytest_cache/
 *.tsbuildinfo
 supabase/.temp/
+supabase/setup_all_in_one.sql

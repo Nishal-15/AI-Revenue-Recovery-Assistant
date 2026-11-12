@@ -43,4 +43,7 @@ async def main() -> int:
 
 
 if __name__ == "__main__":
+    # Windows consoles default to a legacy code page that cannot print emoji in drafted replies.
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
     sys.exit(asyncio.run(main()))
