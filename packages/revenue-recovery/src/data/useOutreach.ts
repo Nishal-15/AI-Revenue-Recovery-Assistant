@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
+  AiReading,
   ApprovalItem,
   Conversation,
   MessageDirection,
@@ -7,6 +8,7 @@ import type {
   MessageTemplate,
   NewOutboundMessage,
   OutreachMessage,
+  ReplyIntent,
 } from "../domain/outreach";
 import { phoneDigits } from "../domain/outreach";
 import type { LeakType } from "../domain/types";
@@ -36,10 +38,24 @@ type RawMessage = {
   template_id: string | null;
   recovery_item_id: string | null;
   automation_rule_id: string | null;
+  ai_intent?: ReplyIntent | null;
+  ai_confidence?: number | string | null;
+  ai_summary?: string | null;
+  ai_suggested_reply?: string | null;
 };
 
+const toAiReading = (raw: RawMessage): AiReading | null =>
+  raw.ai_intent
+    ? {
+        intent: raw.ai_intent,
+        confidence: Number(raw.ai_confidence ?? 0),
+        summary: raw.ai_summary ?? null,
+        suggestedReply: raw.ai_suggested_reply ?? null,
+      }
+    : null;
+
 const MESSAGE_COLUMNS =
-  "id, direction, contact_phone, body, status, error, created_at, sent_at, handled_at, template_id, recovery_item_id, automation_rule_id";
+  "id, direction, contact_phone, body, status, error, created_at, sent_at, handled_at, template_id, recovery_item_id, automation_rule_id, ai_intent, ai_confidence, ai_summary, ai_suggested_reply";
 
 const toMessage = (raw: RawMessage): OutreachMessage => ({
   id: raw.id,
@@ -54,6 +70,7 @@ const toMessage = (raw: RawMessage): OutreachMessage => ({
   templateId: raw.template_id,
   recoveryItemId: raw.recovery_item_id,
   automated: raw.automation_rule_id !== null,
+  ai: toAiReading(raw),
 });
 
 type RawConversation = {

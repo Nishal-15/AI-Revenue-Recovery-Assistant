@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "react";
-import { ArrowLeft, Bot, CheckCheck } from "lucide-react";
-import { Button, ErrorBanner, cx } from "../../components/ui";
-import type { Conversation, MessageStatus, MessageTemplate, OutreachMessage } from "../../domain/outreach";
+import { ArrowLeft, Bot, CheckCheck, Sparkles } from "lucide-react";
+import { Button, ErrorBanner, Pill, cx } from "../../components/ui";
+import type { Tone } from "../../domain/leaks";
+import type { Conversation, MessageStatus, MessageTemplate, OutreachMessage, ReplyIntent } from "../../domain/outreach";
 import { useMarkHandled, useThread } from "../../data/useOutreach";
 import { formatMessageTime } from "../../lib/time";
 import { Composer } from "./Composer";
@@ -17,6 +18,15 @@ const STATUS_LABELS = {
   cancelled: "Cancelled",
 } as const satisfies Record<MessageStatus, string>;
 
+const INTENT_LABELS = {
+  confirm: { label: "Confirming", tone: "recovered" },
+  reschedule: { label: "Wants to reschedule", tone: "risk" },
+  cancel: { label: "Cancelling", tone: "missed" },
+  question: { label: "Question", tone: "info" },
+  opt_out: { label: "Asked to stop", tone: "missed" },
+  other: { label: "Other", tone: "neutral" },
+} as const satisfies Record<ReplyIntent, { label: string; tone: Tone }>;
+
 type ThreadProps = {
   conversation: Conversation;
   templates: MessageTemplate[];
@@ -30,6 +40,10 @@ export const Thread = ({ conversation, templates, onBack, className }: ThreadPro
   const scrollRef = useRef<HTMLDivElement>(null);
   const unhandledIds = messages.filter((m) => m.direction === "inbound" && m.handledAt === null).map((m) => m.id);
   const templateName = (id: string | null) => templates.find((template) => template.id === id)?.name ?? null;
+  // Offer the draft for the newest message still waiting for a reply.
+  const suggestion =
+    messages.filter((m) => m.direction === "inbound" && m.handledAt === null && m.ai?.suggestedReply).at(-1)?.ai
+      ?.suggestedReply ?? null;
 
   // Scroll only the message pane; scrollIntoView could also scroll the host app around the module.
   useEffect(() => {
@@ -68,7 +82,7 @@ export const Thread = ({ conversation, templates, onBack, className }: ThreadPro
         )}
       </div>
 
-      <Composer key={conversation.contactPhone} conversation={conversation} templates={templates} />
+      <Composer key={conversation.contactPhone} conversation={conversation} templates={templates} suggestion={suggestion} />
     </section>
   );
 };
@@ -100,7 +114,22 @@ const MessageBubble = ({ message, templateName }: { message: OutreachMessage; te
           {!outbound && message.handledAt === null && " · Needs reply"}
         </p>
         {message.error && <p className="mt-1 text-xs text-rr-missed-ink">{message.error}</p>}
+        {message.ai && <AiReadingLine message={message} />}
       </div>
     </li>
+  );
+};
+
+const AiReadingLine = ({ message }: { message: OutreachMessage }) => {
+  if (!message.ai) return null;
+  const intent = INTENT_LABELS[message.ai.intent];
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-1.5 border-t border-rr-line pt-2">
+      <Pill tone={intent.tone}>
+        <Sparkles size={11} />
+        {intent.label}
+      </Pill>
+      {message.ai.summary && <span className="text-xs text-rr-ink-soft">{message.ai.summary}</span>}
+    </div>
   );
 };

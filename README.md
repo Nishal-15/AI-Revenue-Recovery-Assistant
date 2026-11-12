@@ -12,6 +12,7 @@ Built as a **section that plugs into the Dental OS**, sharing its Supabase proje
 | Data | Supabase: Postgres, Auth, Row Level Security, RPC |
 | Engine | Python, FastAPI, psycopg |
 | AI | Google Gemini (`gemini-3.5-flash-lite`) through the `google-genai` SDK |
+| Hosting | Cloudflare Workers + Containers (engine), Cloudflare Pages (demo), Supabase (database) |
 | Messaging | WhatsApp Cloud API (Meta) |
 
 ```
@@ -150,6 +151,86 @@ New clinics get these templates and sequences with `select recovery.install_defa
 
 With `ENABLE_SCHEDULER=true` the engine dispatches every minute and scans every `SCAN_INTERVAL_MINUTES`.
 
+## AI assistance (Gemini)
+
+With `GEMINI_API_KEY` set, every few minutes the engine:
+
+- **Classifies new enquiries**: treatment interest (aligners, implant, pain/emergency, …), urgency and a one-line
+  summary. Interest sets the estimated value; an emergency gets the top priority on the worklist.
+- **Reads patients' free-text replies**: confirm, reschedule, cancel, question, opt out or other, with a confidence
+  score, a short summary ("Wants to reschedule (Thursday evening)") and a **drafted reply** that staff can use, edit or ignore.
+
+What the AI may change on its own is deliberately narrow:
+
+| AI reading | Confidence needed | Automatic action |
+|---|---|---|
+| Confirm (reply to an appointment reminder) | 85% | Appointment confirmed, item recovered |
+| Opt out ("please stop messaging me") | 90% | Opt-out recorded, pending messages cancelled |
+| Reschedule / cancel | 70% | Item marked in progress |
+| Anything else | – | Label and draft only |
+
+Drafted replies are never sent automatically. The prompts forbid medical advice and invented prices, treat patient
+text as untrusted input, and reply in the patient's language. Each enquiry and message is analysed once, only recent
+ones (7 days / 2 days), at most `AI_BATCH_SIZE` per run, so cost is predictable. Without a key, everything else works.
+
+Check your key and model:
+
+```bash
+cd services/engine && .venv/Scripts/python -m scripts.check_gemini
+```
+
+## Deploy on Cloudflare
+
+```
+Dental OS app ─┐                         ┌─> Supabase Postgres (data, auth, RLS)
+               ├─ supabase-js ───────────┤
+Demo (Pages) ──┘                         │
+Meta webhook ──> Worker ──> Container (Python engine) ──┬─> Supabase (pooler)
+Cron */5 min ──> Worker ─┘                              ├─> WhatsApp Cloud API
+                                                        └─> Gemini API
+```
+
+The Python engine runs unchanged in a **Cloudflare Container**; a small Worker (`deploy/cloudflare/engine`)
+forwards webhooks to it and replaces the in-process scheduler with a **Cron Trigger**: every 5 minutes it runs
+`/jobs/ai` and `/jobs/dispatch`, and every 15 minutes `/jobs/scan`. The container sleeps 2 minutes after its
+last request, so you pay mostly for the minutes it works.
+
+**You need:** a Cloudflare account on **Workers Paid** (containers are not on the free plan), **Docker Desktop
+running** (wrangler builds the image), and a Supabase project.
+
+1. **Database (Supabase).** Run the files in `supabase/migrations/` in order (SQL editor, or `npx supabase db push`).
+   Add `recovery` under Settings → API → Exposed schemas. Create the clinic and give staff access:
+
+   ```sql
+   insert into recovery.clinics (name, whatsapp_number) values ('Your Clinic', '+91…') returning id;
+   select recovery.install_default_automations('<clinic id>');
+   insert into recovery.clinic_staff (clinic_id, user_id, full_name, role) values ('<clinic id>', '<auth user id>', 'Name', 'owner');
+   ```
+
+2. **Engine secrets.** Use the Supabase **connection pooler** URL (Settings → Database → Connection string → Transaction
+   pooler, port 6543); the direct connection is IPv6-only.
+
+   ```bash
+   cd deploy/cloudflare/engine && npm install
+   npx wrangler login
+   npx wrangler secret put DATABASE_URL
+   npx wrangler secret put ENGINE_API_TOKEN        # any long random string
+   npx wrangler secret put GEMINI_API_KEY
+   # when WhatsApp is ready:
+   npx wrangler secret put WHATSAPP_ACCESS_TOKEN
+   npx wrangler secret put WHATSAPP_APP_SECRET
+   npx wrangler secret put WHATSAPP_VERIFY_TOKEN
+   ```
+
+3. **Deploy the engine:** `npm run deploy:engine` (from the repo root). Open
+   `https://revenue-recovery-engine.<your-subdomain>.workers.dev/health`; it should show `"ai": "on"`.
+   The first deploy takes a few minutes before the container answers.
+4. **WhatsApp webhook:** in Meta, set the callback URL to `…workers.dev/webhooks/whatsapp` with your verify token.
+5. **Demo site:** `npm run deploy:demo` publishes the playground to `https://revenue-recovery-demo.pages.dev`
+   (demo data, no login). The real screens live inside the Dental OS, which can also be hosted on Pages.
+
+Logs: `npm run tail --prefix deploy/cloudflare/engine`.
+
 ## Mounting inside the Dental OS
 
 ```tsx
@@ -171,6 +252,7 @@ import "@dental-os/revenue-recovery/style.css";
 | 0 | Repo, schema and RLS, design system, dashboard, engine skeleton, Gemini client | done |
 | 1 | Detection scan for the 4 leak types, worklist, confirmations, recalls | done |
 | 2 | WhatsApp Cloud API: templates, sending, inbound webhook, consent, quiet hours, automations | done |
-| 3 | Gemini: message drafting, reply intent (confirm / reschedule / stop), priority scoring | next |
-| 4 | Booking attribution, reports, polish | |
+| 3 | Gemini: enquiry classification, reply intent, drafted replies, AI-informed priority | done |
+| – | Cloudflare deployment: Worker + Container engine, Pages demo | ready (needs your account) |
+| 4 | Booking attribution, reports, polish | next |
 | 5 | Connect to the Dental OS, pilot with one clinic | |

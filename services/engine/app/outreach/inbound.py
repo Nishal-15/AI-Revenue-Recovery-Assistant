@@ -172,7 +172,7 @@ def _handle_message(conn: Connection[Row], clinic_id: UUID, event: InboundMessag
 
     keyword = (event.text or "").strip().lower()
     if event.button_payload is None and keyword in STOP_WORDS | START_WORDS:
-        _record_consent(conn, clinic_id, phone, opted_out=keyword in STOP_WORDS, now=now)
+        record_consent(conn, clinic_id, phone, opted_out=keyword in STOP_WORDS, now=now)
         _mark_handled(conn, inbound_id, now)
         return True
 
@@ -191,7 +191,7 @@ def _mark_handled(conn: Connection[Row], message_id: UUID, now: datetime) -> Non
     _run(conn, "update recovery.outreach_messages set handled_at = %(now)s where id = %(id)s", {"id": message_id, "now": now})
 
 
-def _record_consent(conn: Connection[Row], clinic_id: UUID, phone: str, *, opted_out: bool, now: datetime) -> None:
+def record_consent(conn: Connection[Row], clinic_id: UUID, phone: str, *, opted_out: bool, now: datetime) -> None:
     status = "opted_out" if opted_out else "opted_in"
     _run(
         conn,

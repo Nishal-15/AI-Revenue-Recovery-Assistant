@@ -9,6 +9,9 @@ from uuid import UUID
 from psycopg import Connection
 from psycopg_pool import ConnectionPool
 
+from app.ai.assist import AssistResult, run_ai_assist
+from app.ai.llm import GeminiLlm
+from app.config import Settings
 from app.detection.models import ClinicScanResult
 from app.detection.repository import list_clinic_ids
 from app.detection.scan import scan_clinic
@@ -52,3 +55,19 @@ def run_detection_cycle(pool: Pool, now: datetime | None = None) -> list[ClinicC
 def run_dispatch(pool: Pool, sender: WhatsAppSender, now: datetime | None = None) -> DispatchResult:
     with pool.connection() as conn:
         return dispatch_due(conn, sender, now or datetime.now(UTC))
+
+
+def build_llm(settings: Settings) -> GeminiLlm | None:
+    """A fresh client per run: each run uses its own event loop, and the async client is bound to one."""
+    if not settings.gemini_api_key:
+        return None
+    return GeminiLlm(api_key=settings.gemini_api_key.get_secret_value(), model=settings.gemini_model)
+
+
+def run_ai(pool: Pool, settings: Settings, now: datetime | None = None) -> AssistResult | None:
+    """None when no Gemini key is configured: the rest of the product works without AI."""
+    llm = build_llm(settings)
+    if llm is None:
+        return None
+    with pool.connection() as conn:
+        return run_ai_assist(conn, llm, now or datetime.now(UTC), limit=settings.ai_batch_size)

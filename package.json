@@ -9,7 +9,9 @@
     "dev": "npm run dev -w @dental-os/playground",
     "build": "npm run build -w @dental-os/revenue-recovery",
     "typecheck": "npm run typecheck --workspaces --if-present",
-    "db:test": "node tools/test-db.mjs"
+    "db:test": "node tools/test-db.mjs",
+    "deploy:demo": "npm run build -w @dental-os/playground && npx --prefix deploy/cloudflare/engine wrangler pages deploy apps/playground/dist --project-name revenue-recovery-demo",
+    "deploy:engine": "npm run deploy --prefix deploy/cloudflare/engine"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.16",

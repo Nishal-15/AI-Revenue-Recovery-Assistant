@@ -1,4 +1,5 @@
 import type {
+  AiReading,
   ApprovalItem,
   AutomationRule,
   ClinicSettings,
@@ -97,9 +98,10 @@ const fill = (templateId: string, values: Record<string, string>): string => {
   return template ? previewTemplate(template, values) : "";
 };
 
-type Seed = Omit<DemoMessage, "id" | "createdAt" | "sentAt" | "handledAt" | "error" | "recoveryItemId"> & {
+type Seed = Omit<DemoMessage, "id" | "createdAt" | "sentAt" | "handledAt" | "error" | "recoveryItemId" | "ai"> & {
   minutesAgo: number;
   handled?: boolean;
+  ai?: AiReading;
 };
 
 const seeds = (): Seed[] => [
@@ -111,10 +113,18 @@ const seeds = (): Seed[] => [
   {
     contactName: "Ananya Rao", contactPhone: "+919845012345", direction: "inbound", status: "delivered",
     templateId: null, automated: false, minutesAgo: 35, body: "Hi, can I come at 11:30 instead of 10:30?",
+    ai: {
+      intent: "reschedule", confidence: 0.93, summary: "Wants to move the appointment (11:30 instead of 10:30)",
+      suggestedReply: "Hi Ananya, let me check the 11:30 slot for tomorrow and confirm in a few minutes. 🙂 – Smile Studio Dental",
+    },
   },
   {
     contactName: "Meera Iyer", contactPhone: "+919900023456", direction: "inbound", status: "delivered",
     templateId: null, automated: false, minutesAgo: 3 * 60, body: "Hi, how much do clear aligners cost? And do you offer EMI?",
+    ai: {
+      intent: "question", confidence: 0.96, summary: "Asks aligner price and EMI options",
+      suggestedReply: "Hi Meera, thanks for asking! Aligner cost depends on your teeth, so we start with a short consultation. We do offer EMI. Shall we book a consultation this week? – Smile Studio Dental",
+    },
   },
   {
     contactName: "Vikram Shah", contactPhone: "+91 98201 44556", direction: "outbound", status: "delivered",
@@ -133,6 +143,10 @@ const seeds = (): Seed[] => [
   {
     contactName: "Suresh", contactPhone: "+919000011122", direction: "inbound", status: "delivered",
     templateId: null, automated: false, minutesAgo: 10, body: "Hello, are you open on Sundays? I have a broken tooth.",
+    ai: {
+      intent: "question", confidence: 0.9, summary: "Broken tooth, asks about Sunday opening",
+      suggestedReply: "Hi Suresh, sorry to hear about your tooth. Our team will call you shortly to find the earliest slot. If you have severe pain or swelling, please visit emergency care. – Smile Studio Dental",
+    },
   },
   {
     contactName: "Rohan Gupta", contactPhone: "+91 98100 65432", direction: "outbound", status: "awaiting_approval",
@@ -164,7 +178,7 @@ const getState = (): DemoOutreachState => {
   if (!state) {
     const now = Date.now();
     state = {
-      messages: seeds().map(({ minutesAgo, handled, ...seed }) => {
+      messages: seeds().map(({ minutesAgo, handled, ai, ...seed }) => {
         const createdAt = new Date(now - minutesAgo * MINUTE_MS).toISOString();
         const isSent = seed.direction === "outbound" && seed.status !== "awaiting_approval";
         return {
@@ -175,6 +189,7 @@ const getState = (): DemoOutreachState => {
           handledAt: handled ? createdAt : null,
           error: null,
           recoveryItemId: null,
+          ai: ai ?? null,
         };
       }),
       rules: RULES.map((rule) => ({ ...rule, steps: [...rule.steps] })),
@@ -296,6 +311,7 @@ export const demoOutreach = {
         createdAt: now,
         sentAt: blocked ? null : now,
         handledAt: null,
+        ai: null,
       },
     ];
     // Replying to someone counts as dealing with their messages.

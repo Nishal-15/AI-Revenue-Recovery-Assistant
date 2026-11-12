@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Lock, Send } from "lucide-react";
+import { Lock, Send, Sparkles } from "lucide-react";
 import { TemplatePicker } from "../../components/TemplatePicker";
 import { Button, ErrorBanner, SegmentedControl } from "../../components/ui";
 import type { Conversation, MessageTemplate } from "../../domain/outreach";
@@ -9,7 +9,14 @@ import { formatTimeLeft } from "../../lib/time";
 
 type ComposeMode = "text" | "template";
 
-export const Composer = ({ conversation, templates }: { conversation: Conversation; templates: MessageTemplate[] }) => {
+type ComposerProps = {
+  conversation: Conversation;
+  templates: MessageTemplate[];
+  /** Gemini's draft for the latest unanswered message; staff review it before sending. */
+  suggestion: string | null;
+};
+
+export const Composer = ({ conversation, templates, suggestion }: ComposerProps) => {
   const send = useSendMessage();
   const windowOpen = isReplyWindowOpen(conversation.lastInboundAt);
   // Appointment or treatment templates need a worklist item for their details; send those from the Worklist.
@@ -54,6 +61,19 @@ export const Composer = ({ conversation, templates }: { conversation: Conversati
       </div>
 
       {send.isError && <ErrorBanner message={send.error.message} onDismiss={() => send.reset()} />}
+
+      {effectiveMode === "text" && suggestion && !text && (
+        <div className="flex items-start gap-3 rounded-xl border border-rr-primary/30 bg-rr-primary-soft/60 px-3 py-2.5">
+          <Sparkles size={15} className="mt-0.5 shrink-0 text-rr-primary-strong" />
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] font-semibold text-rr-primary-strong">Suggested reply · check before sending</p>
+            <p className="mt-0.5 text-[13px] text-rr-ink">{suggestion}</p>
+          </div>
+          <Button variant="outline" onClick={() => setText(suggestion)}>
+            Use this
+          </Button>
+        </div>
+      )}
 
       {effectiveMode === "text" ? (
         <div className="flex items-end gap-2">

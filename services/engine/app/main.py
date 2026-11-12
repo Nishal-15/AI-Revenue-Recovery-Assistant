@@ -5,7 +5,7 @@ Runs beside Supabase with a privileged database connection:
   planning    turns automation sequences into outbound WhatsApp messages     (part of /jobs/scan)
   dispatch    sends queued messages within consent, quiet-hour and limit rules (POST /jobs/dispatch)
   webhook     receives replies, button taps and delivery receipts           (POST /webhooks/whatsapp)
-  ai          Gemini enquiry classification                                  (POST /ai/classify-enquiry)
+  ai          Gemini: classify enquiries, read replies, draft responses     (POST /jobs/ai)
 """
 
 import asyncio
@@ -30,7 +30,8 @@ from app.ai.llm import AiUnavailableError, GeminiLlm, StructuredLlm
 from app.config import Settings, get_settings
 from app.db import create_pool
 from app.detection.repository import ClinicNotFoundError
-from app.jobs import ClinicCycle, run_clinic_cycle, run_detection_cycle, run_dispatch
+from app.ai.assist import AssistResult
+from app.jobs import ClinicCycle, run_ai, run_clinic_cycle, run_detection_cycle, run_dispatch
 from app.outreach.dispatcher import DispatchResult
 from app.outreach.inbound import InboundResult, handle_events
 from app.whatsapp.sender import CloudApiSender, DryRunSender, WhatsAppSender
@@ -51,8 +52,10 @@ def build_sender(settings: Settings) -> WhatsAppSender:
     return DryRunSender()
 
 
-async def run_scheduler(pool: Pool, sender: WhatsAppSender, scan_interval_minutes: int) -> None:
-    """Sends due messages every minute and re-scans clinics every `scan_interval_minutes`."""
+async def run_scheduler(pool: Pool, sender: WhatsAppSender, settings: Settings) -> None:
+    """Every minute: read new replies with Gemini, then send due messages.
+    Every `scan_interval_minutes`: detect leaks and plan reminders."""
+    scan_interval_minutes = settings.scan_interval_minutes
     last_scan = float("-inf")
     while True:
         try:
@@ -60,6 +63,9 @@ async def run_scheduler(pool: Pool, sender: WhatsAppSender, scan_interval_minute
                 cycles = await asyncio.to_thread(run_detection_cycle, pool)
                 last_scan = monotonic()
                 logger.info("detection cycle finished for %d clinics", len(cycles))
+            assisted = await asyncio.to_thread(run_ai, pool, settings)
+            if assisted and (assisted.replies_analysed or assisted.enquiries_classified or assisted.failed):
+                logger.info("ai assist: %s", assisted)
             dispatched = await asyncio.to_thread(run_dispatch, pool, sender)
             if dispatched.sent or dispatched.failed:
                 logger.info("dispatch: %s", dispatched)
@@ -79,7 +85,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         pool.open()
         app.state.pool = pool
         if settings.enable_scheduler:
-            scheduler = asyncio.create_task(run_scheduler(pool, build_sender(settings), settings.scan_interval_minutes))
+            scheduler = asyncio.create_task(run_scheduler(pool, build_sender(settings), settings))
 
     yield
 
@@ -129,7 +135,11 @@ LlmDep = Annotated[StructuredLlm, Depends(get_llm)]
 
 @app.get("/health")
 def health(settings: SettingsDep) -> dict[str, str]:
-    return {"status": "ok", "whatsapp": "live" if settings.whatsapp_access_token else "dry-run"}
+    return {
+        "status": "ok",
+        "whatsapp": "live" if settings.whatsapp_access_token else "dry-run",
+        "ai": "on" if settings.gemini_api_key else "off",
+    }
 
 
 @app.post("/jobs/scan", dependencies=[Depends(require_engine_token)])
@@ -142,6 +152,15 @@ def run_scan(pool: PoolDep, clinic_id: UUID | None = None) -> list[ClinicCycle]:
             return [run_clinic_cycle(conn, clinic_id, datetime.now(UTC))]
     except ClinicNotFoundError as error:
         raise HTTPException(status.HTTP_404_NOT_FOUND, str(error)) from error
+
+
+@app.post("/jobs/ai", dependencies=[Depends(require_engine_token)])
+def run_ai_job(pool: PoolDep, settings: SettingsDep) -> AssistResult:
+    """Classifies new enquiries and reads unhandled replies with Gemini."""
+    result = run_ai(pool, settings)
+    if result is None:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "GEMINI_API_KEY is not configured")
+    return result
 
 
 @app.post("/jobs/dispatch", dependencies=[Depends(require_engine_token)])

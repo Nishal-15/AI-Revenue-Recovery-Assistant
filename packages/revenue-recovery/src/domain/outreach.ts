@@ -13,6 +13,16 @@ export type MessageStatus =
 
 export type MessageDirection = "outbound" | "inbound";
 
+export type ReplyIntent = "confirm" | "reschedule" | "cancel" | "question" | "opt_out" | "other";
+
+/** What Gemini understood from a patient's message. Never acted on below the engine's confidence thresholds. */
+export type AiReading = {
+  intent: ReplyIntent;
+  confidence: number;
+  summary: string | null;
+  suggestedReply: string | null;
+};
+
 export type OutreachMessage = {
   id: string;
   direction: MessageDirection;
@@ -27,6 +37,8 @@ export type OutreachMessage = {
   recoveryItemId: string | null;
   /** True when an automation sequence produced it rather than a person. */
   automated: boolean;
+  /** Inbound messages only, once the engine has analysed them. */
+  ai: AiReading | null;
 };
 
 export type ApprovalItem = OutreachMessage & { contactName: string };

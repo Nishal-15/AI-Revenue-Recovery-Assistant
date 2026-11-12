@@ -1,0 +1,36 @@
+{
+  // Revenue Recovery engine on Cloudflare: a Worker in front of the Python engine running in a Container.
+  // Deploy with `npm run deploy` from this folder (Docker must be running; wrangler builds the image).
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "revenue-recovery-engine",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-11-01",
+  "observability": { "enabled": true },
+
+  "containers": [
+    {
+      "class_name": "Engine",
+      "image": "../../../services/engine/Dockerfile",
+      // 1/4 vCPU, 1 GiB: Python + psycopg + the Gemini SDK fit comfortably.
+      "instance_type": "basic",
+      // One engine is enough for a clinic group; the dispatcher's row locks make a second one safe.
+      "max_instances": 2
+    }
+  ],
+  "durable_objects": {
+    "bindings": [{ "name": "ENGINE", "class_name": "Engine" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Engine"] }],
+
+  // Every 5 minutes: read replies with Gemini and send due WhatsApp messages.
+  // Every 15 minutes (decided in src/index.ts): detect leaks and plan reminders.
+  "triggers": { "crons": ["*/5 * * * *"] },
+
+  // Non-secret settings. Secrets are set with `npx wrangler secret put <NAME>` (see the README).
+  "vars": {
+    "GEMINI_MODEL": "gemini-3.5-flash-lite",
+    "WHATSAPP_API_VERSION": "v23.0",
+    "DB_POOL_MAX_SIZE": "3",
+    "AI_BATCH_SIZE": "20"
+  }
+}

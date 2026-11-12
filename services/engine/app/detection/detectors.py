@@ -28,7 +28,7 @@ def _fetch(conn: Connection[Row], sql: str, params: dict[str, Any]) -> list[Row]
 
 MISSED_ENQUIRIES_SQL = """
 select e.id, e.patient_id, coalesce(p.full_name, e.contact_name) as name, e.contact_phone,
-       e.source::text as source, e.interest, e.status::text as status, e.received_at
+       e.source::text as source, e.interest, e.urgency, e.status::text as status, e.received_at
 from recovery.enquiries e
 left join recovery.patients p on p.id = e.patient_id
 where e.clinic_id = %(clinic_id)s
@@ -38,6 +38,11 @@ where e.clinic_id = %(clinic_id)s
     or (e.status = 'contacted' and e.received_at < %(now)s - %(unbooked_after)s)
   )
 """
+
+
+def _scoring_interest(row: Row) -> str | None:
+    """An enquiry the AI judged an emergency gets the emergency boost even if no treatment was named."""
+    return "pain_emergency" if row["urgency"] == "emergency" else row["interest"]
 
 
 def detect_missed_enquiries(conn: Connection[Row], ctx: ClinicScanContext) -> list[DetectedItem]:
@@ -66,7 +71,7 @@ def detect_missed_enquiries(conn: Connection[Row], ctx: ClinicScanContext) -> li
                 contact_phone=row["contact_phone"],
                 reason=reason,
                 estimated_value=value,
-                priority_score=priority_score("missed_enquiry", float(value), waiting, row["interest"]),
+                priority_score=priority_score("missed_enquiry", float(value), waiting, _scoring_interest(row)),
                 due_at=row["received_at"] + ctx.enquiry_response_sla,
             )
         )

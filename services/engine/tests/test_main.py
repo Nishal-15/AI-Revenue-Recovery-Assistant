@@ -18,7 +18,7 @@ def client():
 
 
 def test_health(client):
-    assert client.get("/health").json() == {"status": "ok", "whatsapp": "dry-run"}
+    assert client.get("/health").json() == {"status": "ok", "whatsapp": "dry-run", "ai": "off"}
 
 
 def test_scan_rejects_missing_token(client):
