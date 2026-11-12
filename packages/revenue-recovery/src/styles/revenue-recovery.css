@@ -37,6 +37,12 @@
   --color-rr-info: #6c8cff;
   --color-rr-info-soft: #e9eeff;
 
+  /* Readable text on the matching -soft surface (pills, badges) */
+  --color-rr-recovered-ink: #047857;
+  --color-rr-risk-ink: #9a5b00;
+  --color-rr-missed-ink: #c03a2b;
+  --color-rr-info-ink: #3b55c9;
+
   --font-rr-display: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   --font-rr-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 

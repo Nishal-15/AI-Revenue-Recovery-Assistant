@@ -44,6 +44,14 @@ curl -X POST http://localhost:8000/ai/classify-enquiry \
   -d '{"message": "Hi, my tooth is swollen and hurting a lot, can I come today?"}'
 ```
 
+Run the engine's database tests against a real Postgres (PGlite, no Docker needed):
+
+```bash
+npm run db:test                  # terminal 1: Postgres on 127.0.0.1:54329 with all migrations applied
+cd services/engine               # terminal 2
+TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54329/postgres .venv/Scripts/python -m pytest
+```
+
 To show real data in the playground, copy `apps/playground/.env.example` to `.env` and fill in the Supabase URL and anon key.
 
 ## Database
@@ -80,6 +88,21 @@ Staff only ever see rows for clinics they belong to. Attribution and the audit l
 When the Dental OS is ready, either it adopts these tables directly, or its tables sync into them.
 Nothing else in the module has to change.
 
+## How detection works
+
+`POST /jobs/scan` (or the built-in scheduler, `ENABLE_SCHEDULER=true`, every 15 minutes) checks each clinic:
+
+| Leak | Flagged when | Clears itself when |
+|---|---|---|
+| Missed enquiry | No reply within the clinic's response time (default 60 min), or replied but not booked after 3 days | Enquiry is booked (recovered) or marked lost |
+| Overdue follow-up | A staff callback or task is past its due time | Task is done or rescheduled |
+| Unconfirmed appointment | Still "scheduled" within the next 72 hours | Confirmed or attended (recovered), cancelled or no-show (lost), time passes |
+| Not returned | A planned treatment step or recall is overdue by more than 7 days and not booked | Booked or completed (recovered) |
+
+Each item gets a 0–100 priority from its value (log-scaled) and urgency, plus a boost for pain or emergency
+enquiries. Rescanning never duplicates items, never reopens resolved ones, and keeps staff's
+"in progress" and snooze state. Every status change is written to `audit_log`.
+
 ## Mounting inside the Dental OS
 
 ```tsx
@@ -99,8 +122,8 @@ import "@dental-os/revenue-recovery/style.css";
 | Phase | Scope | Status |
 |---|---|---|
 | 0 | Repo, schema and RLS, design system, dashboard, engine skeleton, Gemini client | done |
-| 1 | Detection scan for the 4 leak types, worklist, confirmations, recalls | next |
-| 2 | WhatsApp Cloud API: templates, sending, inbound webhook, consent, quiet hours, automations | |
+| 1 | Detection scan for the 4 leak types, worklist, confirmations, recalls | done |
+| 2 | WhatsApp Cloud API: templates, sending, inbound webhook, consent, quiet hours, automations | next |
 | 3 | Gemini: message drafting, reply intent (confirm / reschedule / stop), priority scoring | |
 | 4 | Booking attribution, reports, polish | |
 | 5 | Connect to the Dental OS, pilot with one clinic | |

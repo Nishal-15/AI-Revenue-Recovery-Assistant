@@ -27,9 +27,9 @@ type Section = { label: string; icon: LucideIcon; plannedPhase: number | null };
 
 export const SECTIONS = {
   dashboard: { label: "Dashboard", icon: LayoutDashboard, plannedPhase: null },
-  worklist: { label: "Worklist", icon: ListTodo, plannedPhase: 1 },
-  confirmations: { label: "Confirmations", icon: CalendarCheck2, plannedPhase: 1 },
-  recalls: { label: "Recalls", icon: UserRoundSearch, plannedPhase: 1 },
+  worklist: { label: "Worklist", icon: ListTodo, plannedPhase: null },
+  confirmations: { label: "Confirmations", icon: CalendarCheck2, plannedPhase: null },
+  recalls: { label: "Recalls", icon: UserRoundSearch, plannedPhase: null },
   inbox: { label: "WhatsApp inbox", icon: MessagesSquare, plannedPhase: 2 },
   automations: { label: "Automations", icon: Workflow, plannedPhase: 2 },
   reports: { label: "Reports", icon: BarChart3, plannedPhase: 4 },

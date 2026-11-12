@@ -1,7 +1,7 @@
 import { CalendarClock, CalendarX2, MessageCircleQuestion, UserRoundSearch, type LucideIcon } from "lucide-react";
 import type { LeakType } from "./types";
 
-type Tone = "missed" | "risk" | "info" | "primary";
+export type Tone = "missed" | "risk" | "info" | "primary" | "recovered" | "neutral";
 
 type LeakMeta = {
   label: string;
@@ -38,8 +38,15 @@ export const LEAK_META = {
 } as const satisfies Record<LeakType, LeakMeta>;
 
 export const TONE_CLASSES = {
-  missed: { text: "text-rr-missed", soft: "bg-rr-missed-soft", bar: "bg-rr-missed" },
-  risk: { text: "text-rr-risk", soft: "bg-rr-risk-soft", bar: "bg-rr-risk" },
-  info: { text: "text-rr-info", soft: "bg-rr-info-soft", bar: "bg-rr-info" },
-  primary: { text: "text-rr-primary", soft: "bg-rr-primary-soft", bar: "bg-rr-primary" },
-} as const satisfies Record<Tone, { text: string; soft: string; bar: string }>;
+  missed: { text: "text-rr-missed", ink: "text-rr-missed-ink", soft: "bg-rr-missed-soft", bar: "bg-rr-missed" },
+  risk: { text: "text-rr-risk", ink: "text-rr-risk-ink", soft: "bg-rr-risk-soft", bar: "bg-rr-risk" },
+  info: { text: "text-rr-info", ink: "text-rr-info-ink", soft: "bg-rr-info-soft", bar: "bg-rr-info" },
+  primary: { text: "text-rr-primary", ink: "text-rr-primary-strong", soft: "bg-rr-primary-soft", bar: "bg-rr-primary" },
+  recovered: {
+    text: "text-rr-recovered",
+    ink: "text-rr-recovered-ink",
+    soft: "bg-rr-recovered-soft",
+    bar: "bg-rr-recovered",
+  },
+  neutral: { text: "text-rr-ink-soft", ink: "text-rr-ink-soft", soft: "bg-rr-bg", bar: "bg-rr-ink-faint" },
+} as const satisfies Record<Tone, { text: string; ink: string; soft: string; bar: string }>;

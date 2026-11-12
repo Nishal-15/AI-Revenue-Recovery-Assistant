@@ -1,6 +1,9 @@
 import { Construction } from "lucide-react";
 import { Card, cx } from "../../components/ui";
+import { ConfirmationsPage } from "../confirmations/ConfirmationsPage";
 import { DashboardPage } from "../dashboard/DashboardPage";
+import { RecallsPage } from "../recalls/RecallsPage";
+import { WorklistPage } from "../worklist/WorklistPage";
 import { SECTION_IDS, SECTIONS, type SectionId } from "./sections";
 
 type ModuleShellProps = {
@@ -44,12 +47,27 @@ export const ModuleShell = ({ section, onSectionChange }: ModuleShellProps) => (
       </nav>
     </header>
     <main className="flex-1 p-4 sm:p-6">
-      {section === "dashboard" ? <DashboardPage /> : <PlannedSection section={section} />}
+      <SectionContent section={section} />
     </main>
   </div>
 );
 
-const PlannedSection = ({ section }: { section: Exclude<SectionId, "dashboard"> }) => {
+const SectionContent = ({ section }: { section: SectionId }) => {
+  switch (section) {
+    case "dashboard":
+      return <DashboardPage />;
+    case "worklist":
+      return <WorklistPage />;
+    case "confirmations":
+      return <ConfirmationsPage />;
+    case "recalls":
+      return <RecallsPage />;
+    default:
+      return <PlannedSection section={section} />;
+  }
+};
+
+const PlannedSection = ({ section }: { section: SectionId }) => {
   const { label, plannedPhase } = SECTIONS[section];
   return (
     <Card className="flex flex-col items-center gap-3 px-6 py-16 text-center">

@@ -25,9 +25,9 @@ def test_scan_rejects_missing_token(client):
     assert client.post("/jobs/scan").status_code == 401
 
 
-def test_scan_accepts_valid_token(client):
+def test_scan_without_database_is_503(client):
     response = client.post("/jobs/scan", headers={"Authorization": "Bearer engine-secret"})
-    assert response.status_code == 202
+    assert response.status_code == 503
 
 
 def test_whatsapp_verification_echoes_challenge(client):

@@ -41,3 +41,56 @@ export type DashboardSummary = {
   weekly: WeeklyRecovery[];
   topItems: PriorityItem[];
 };
+
+export const OPEN_STATUSES = ["open", "in_progress"] as const satisfies readonly RecoveryItemStatus[];
+export const RESOLVED_STATUSES = ["recovered", "lost", "dismissed"] as const satisfies readonly RecoveryItemStatus[];
+
+export type ResolvedStatus = (typeof RESOLVED_STATUSES)[number];
+
+export type WorklistItem = {
+  id: string;
+  leakType: LeakType;
+  patientName: string;
+  contactPhone: string | null;
+  reason: string;
+  estimatedValue: number;
+  priorityScore: number;
+  status: RecoveryItemStatus;
+  dueAt: string | null;
+  snoozedUntil: string | null;
+  resolvedAt: string | null;
+  resolutionNote: string | null;
+};
+
+/** The only fields staff change on a recovery item; the database trigger handles resolved_at and the audit log. */
+export type RecoveryItemPatch = {
+  status?: RecoveryItemStatus;
+  snoozedUntil?: string | null;
+  resolutionNote?: string | null;
+};
+
+export type AppointmentStatus = "scheduled" | "confirmed" | "cancelled" | "completed" | "no_show";
+
+export type UpcomingAppointment = {
+  id: string;
+  startsAt: string;
+  status: Extract<AppointmentStatus, "scheduled" | "confirmed">;
+  treatment: string;
+  estimatedValue: number;
+  patientName: string;
+  patientPhone: string | null;
+};
+
+export type FollowupKind = "treatment_step" | "recall";
+
+export type OverdueFollowup = {
+  id: string;
+  kind: FollowupKind;
+  procedure: string;
+  /** Calendar date, YYYY-MM-DD. */
+  dueOn: string;
+  estimatedValue: number;
+  patientName: string;
+  patientPhone: string | null;
+  lastVisitAt: string | null;
+};

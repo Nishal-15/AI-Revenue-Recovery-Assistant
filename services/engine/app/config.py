@@ -10,7 +10,10 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     database_url: SecretStr | None = None
+    db_pool_max_size: int = 5
     engine_api_token: SecretStr = SecretStr("")
+    enable_scheduler: bool = False
+    scan_interval_minutes: int = 15
     whatsapp_access_token: SecretStr | None = None
     whatsapp_verify_token: SecretStr | None = None
     whatsapp_app_secret: SecretStr | None = None
