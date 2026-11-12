@@ -1,17 +1,21 @@
 """Revenue Recovery engine.
 
-Runs beside Supabase with a privileged database connection. Responsibilities by phase:
-  Phase 1  detection scan: read practice tables, upsert recovery.recovery_items
-  Phase 2  WhatsApp dispatch + inbound webhook, consent and quiet-hours checks
-  Phase 3  Gemini: enquiry classification, message drafting, reply intent
-  Phase 4  booking attribution into recovery.recovered_bookings
+Runs beside Supabase with a privileged database connection:
+  detection   finds revenue leaks and keeps recovery_items in sync           (POST /jobs/scan)
+  planning    turns automation sequences into outbound WhatsApp messages     (part of /jobs/scan)
+  dispatch    sends queued messages within consent, quiet-hour and limit rules (POST /jobs/dispatch)
+  webhook     receives replies, button taps and delivery receipts           (POST /webhooks/whatsapp)
+  ai          Gemini enquiry classification                                  (POST /ai/classify-enquiry)
 """
 
 import asyncio
+import json
 import logging
 import secrets
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager, suppress
+from datetime import UTC, datetime
+from time import monotonic
 from typing import Annotated, Any
 from uuid import UUID
 
@@ -25,24 +29,43 @@ from app.ai.enquiries import EnquiryClassification, classify_enquiry
 from app.ai.llm import AiUnavailableError, GeminiLlm, StructuredLlm
 from app.config import Settings, get_settings
 from app.db import create_pool
-from app.detection.models import ClinicScanResult
 from app.detection.repository import ClinicNotFoundError
-from app.detection.scan import scan_all_clinics, scan_clinic
+from app.jobs import ClinicCycle, run_clinic_cycle, run_detection_cycle, run_dispatch
+from app.outreach.dispatcher import DispatchResult
+from app.outreach.inbound import InboundResult, handle_events
+from app.whatsapp.sender import CloudApiSender, DryRunSender, WhatsAppSender
+from app.whatsapp.webhook import parse_webhook, verify_signature
 
 logger = logging.getLogger(__name__)
 
 Pool = ConnectionPool[Connection[dict[str, Any]]]
 
+DISPATCH_TICK_SECONDS = 60
 
-async def run_scheduler(pool: Pool, interval_minutes: int) -> None:
-    """Scans every clinic on a fixed interval; a failed run is logged and the loop carries on."""
+
+def build_sender(settings: Settings) -> WhatsAppSender:
+    if settings.whatsapp_access_token:
+        return CloudApiSender(
+            access_token=settings.whatsapp_access_token.get_secret_value(), api_version=settings.whatsapp_api_version
+        )
+    return DryRunSender()
+
+
+async def run_scheduler(pool: Pool, sender: WhatsAppSender, scan_interval_minutes: int) -> None:
+    """Sends due messages every minute and re-scans clinics every `scan_interval_minutes`."""
+    last_scan = float("-inf")
     while True:
         try:
-            results = await asyncio.to_thread(scan_all_clinics, pool)
-            logger.info("scheduled scan finished for %d clinics", len(results))
+            if monotonic() - last_scan >= scan_interval_minutes * 60:
+                cycles = await asyncio.to_thread(run_detection_cycle, pool)
+                last_scan = monotonic()
+                logger.info("detection cycle finished for %d clinics", len(cycles))
+            dispatched = await asyncio.to_thread(run_dispatch, pool, sender)
+            if dispatched.sent or dispatched.failed:
+                logger.info("dispatch: %s", dispatched)
         except Exception:
-            logger.exception("scheduled scan failed")
-        await asyncio.sleep(interval_minutes * 60)
+            logger.exception("scheduler tick failed")
+        await asyncio.sleep(DISPATCH_TICK_SECONDS)
 
 
 @asynccontextmanager
@@ -56,7 +79,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         pool.open()
         app.state.pool = pool
         if settings.enable_scheduler:
-            scheduler = asyncio.create_task(run_scheduler(pool, settings.scan_interval_minutes))
+            scheduler = asyncio.create_task(run_scheduler(pool, build_sender(settings), settings.scan_interval_minutes))
 
     yield
 
@@ -68,7 +91,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         app.state.pool.close()
 
 
-app = FastAPI(title="Revenue Recovery Engine", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="Revenue Recovery Engine", version="0.2.0", lifespan=lifespan)
 
 SettingsDep = Annotated[Settings, Depends(get_settings)]
 
@@ -80,7 +103,12 @@ def get_pool(request: Request) -> Pool:
     return pool
 
 
+def get_sender(settings: SettingsDep) -> WhatsAppSender:
+    return build_sender(settings)
+
+
 PoolDep = Annotated[Pool, Depends(get_pool)]
+SenderDep = Annotated[WhatsAppSender, Depends(get_sender)]
 
 
 def require_engine_token(settings: SettingsDep, authorization: Annotated[str | None, Header()] = None) -> None:
@@ -100,20 +128,25 @@ LlmDep = Annotated[StructuredLlm, Depends(get_llm)]
 
 
 @app.get("/health")
-def health() -> dict[str, str]:
-    return {"status": "ok"}
+def health(settings: SettingsDep) -> dict[str, str]:
+    return {"status": "ok", "whatsapp": "live" if settings.whatsapp_access_token else "dry-run"}
 
 
 @app.post("/jobs/scan", dependencies=[Depends(require_engine_token)])
-def run_detection_scan(pool: PoolDep, clinic_id: UUID | None = None) -> list[ClinicScanResult]:
-    """Scans one clinic, or every clinic when clinic_id is omitted. Sync on purpose: FastAPI runs it in a thread."""
+def run_scan(pool: PoolDep, clinic_id: UUID | None = None) -> list[ClinicCycle]:
+    """Detects leaks and plans reminders for one clinic, or all clinics when clinic_id is omitted."""
     if clinic_id is None:
-        return scan_all_clinics(pool)
+        return run_detection_cycle(pool)
     try:
         with pool.connection() as conn:
-            return [scan_clinic(conn, clinic_id)]
+            return [run_clinic_cycle(conn, clinic_id, datetime.now(UTC))]
     except ClinicNotFoundError as error:
         raise HTTPException(status.HTTP_404_NOT_FOUND, str(error)) from error
+
+
+@app.post("/jobs/dispatch", dependencies=[Depends(require_engine_token)])
+def run_dispatch_job(pool: PoolDep, sender: SenderDep) -> DispatchResult:
+    return run_dispatch(pool, sender)
 
 
 class ClassifyEnquiryRequest(BaseModel):
@@ -140,3 +173,29 @@ def verify_whatsapp_webhook(
     if mode != "subscribe" or not expected or not secrets.compare_digest(token, expected):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "webhook verification failed")
     return challenge
+
+
+@app.post("/webhooks/whatsapp")
+async def receive_whatsapp_webhook(
+    request: Request,
+    settings: SettingsDep,
+    pool: PoolDep,
+    signature: Annotated[str | None, Header(alias="X-Hub-Signature-256")] = None,
+) -> InboundResult:
+    if not settings.whatsapp_app_secret:
+        raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, "WHATSAPP_APP_SECRET is not configured")
+    body = await request.body()
+    if not verify_signature(settings.whatsapp_app_secret.get_secret_value(), body, signature):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "invalid webhook signature")
+    try:
+        payload = json.loads(body)
+    except json.JSONDecodeError as error:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "webhook body is not JSON") from error
+
+    events = parse_webhook(payload)
+
+    def handle() -> InboundResult:
+        with pool.connection() as conn:
+            return handle_events(conn, events, datetime.now(UTC))
+
+    return await asyncio.to_thread(handle)

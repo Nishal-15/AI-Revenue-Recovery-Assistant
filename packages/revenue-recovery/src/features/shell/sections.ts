@@ -30,10 +30,10 @@ export const SECTIONS = {
   worklist: { label: "Worklist", icon: ListTodo, plannedPhase: null },
   confirmations: { label: "Confirmations", icon: CalendarCheck2, plannedPhase: null },
   recalls: { label: "Recalls", icon: UserRoundSearch, plannedPhase: null },
-  inbox: { label: "WhatsApp inbox", icon: MessagesSquare, plannedPhase: 2 },
-  automations: { label: "Automations", icon: Workflow, plannedPhase: 2 },
+  inbox: { label: "WhatsApp inbox", icon: MessagesSquare, plannedPhase: null },
+  automations: { label: "Automations", icon: Workflow, plannedPhase: null },
   reports: { label: "Reports", icon: BarChart3, plannedPhase: 4 },
-  settings: { label: "Settings", icon: Settings2, plannedPhase: 2 },
+  settings: { label: "Settings", icon: Settings2, plannedPhase: null },
 } as const satisfies Record<SectionId, Section>;
 
 export const isSectionId = (value: string): value is SectionId =>

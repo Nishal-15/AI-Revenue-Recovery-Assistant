@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     whatsapp_access_token: SecretStr | None = None
     whatsapp_verify_token: SecretStr | None = None
     whatsapp_app_secret: SecretStr | None = None
+    whatsapp_api_version: str = "v23.0"
     gemini_api_key: SecretStr | None = None
     gemini_model: str = "gemini-3.5-flash-lite"
 

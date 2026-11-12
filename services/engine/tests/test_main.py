@@ -18,7 +18,7 @@ def client():
 
 
 def test_health(client):
-    assert client.get("/health").json() == {"status": "ok"}
+    assert client.get("/health").json() == {"status": "ok", "whatsapp": "dry-run"}
 
 
 def test_scan_rejects_missing_token(client):
@@ -40,3 +40,27 @@ def test_whatsapp_verification_echoes_challenge(client):
 def test_whatsapp_verification_rejects_wrong_token(client):
     params = {"hub.mode": "subscribe", "hub.verify_token": "nope", "hub.challenge": "42"}
     assert client.get("/webhooks/whatsapp", params=params).status_code == 403
+
+
+def test_webhook_requires_configured_app_secret(client):
+    from app.main import get_pool
+
+    app.dependency_overrides[get_pool] = lambda: object()
+    response = client.post("/webhooks/whatsapp", content=b"{}")
+    assert response.status_code == 503
+
+
+def test_webhook_rejects_bad_signature():
+    from app.main import get_pool
+
+    app.dependency_overrides[get_settings] = lambda: Settings(
+        _env_file=None, whatsapp_app_secret=SecretStr("app-secret")
+    )
+    app.dependency_overrides[get_pool] = lambda: object()
+    try:
+        response = TestClient(app).post(
+            "/webhooks/whatsapp", content=b"{}", headers={"X-Hub-Signature-256": "sha256=forged"}
+        )
+    finally:
+        app.dependency_overrides.clear()
+    assert response.status_code == 403

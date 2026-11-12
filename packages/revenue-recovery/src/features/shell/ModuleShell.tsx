@@ -1,8 +1,11 @@
 import { Construction } from "lucide-react";
 import { Card, cx } from "../../components/ui";
+import { AutomationsPage } from "../automations/AutomationsPage";
 import { ConfirmationsPage } from "../confirmations/ConfirmationsPage";
 import { DashboardPage } from "../dashboard/DashboardPage";
+import { InboxPage } from "../inbox/InboxPage";
 import { RecallsPage } from "../recalls/RecallsPage";
+import { SettingsPage } from "../settings/SettingsPage";
 import { WorklistPage } from "../worklist/WorklistPage";
 import { SECTION_IDS, SECTIONS, type SectionId } from "./sections";
 
@@ -62,6 +65,12 @@ const SectionContent = ({ section }: { section: SectionId }) => {
       return <ConfirmationsPage />;
     case "recalls":
       return <RecallsPage />;
+    case "inbox":
+      return <InboxPage />;
+    case "automations":
+      return <AutomationsPage />;
+    case "settings":
+      return <SettingsPage />;
     default:
       return <PlannedSection section={section} />;
   }

@@ -1,7 +1,9 @@
 import { useId, useState, type FormEvent } from "react";
-import { AlarmClock, Ban, CircleCheck, Play, RotateCcw, ThumbsDown } from "lucide-react";
-import { WhatsAppLink } from "../../components/WhatsAppLink";
-import { Button, Pill, cx } from "../../components/ui";
+import { AlarmClock, Ban, Check, CircleCheck, MessageCircle, Play, RotateCcw, Send, ThumbsDown } from "lucide-react";
+import { TemplatePicker } from "../../components/TemplatePicker";
+import { Button, ErrorBanner, Pill, cx } from "../../components/ui";
+import { useSendMessage } from "../../data/useOutreach";
+import type { MessageTemplate } from "../../domain/outreach";
 import { LEAK_META, TONE_CLASSES, type Tone } from "../../domain/leaks";
 import type { RecoveryItemPatch, RecoveryItemStatus, WorklistItem } from "../../domain/types";
 import { formatDate, formatDue, formatMoney } from "../../lib/format";
@@ -28,16 +30,18 @@ const priorityPill = (score: number): { label: string; tone: Tone } => {
   return { label: "Low", tone: "neutral" };
 };
 
-type Panel = "none" | "snooze" | "lost";
+type Panel = "none" | "snooze" | "lost" | "message";
 
 type WorklistRowProps = {
   item: WorklistItem;
   currency: string;
+  templates: MessageTemplate[];
   onUpdate: (patch: RecoveryItemPatch) => void;
 };
 
-export const WorklistRow = ({ item, currency, onUpdate }: WorklistRowProps) => {
+export const WorklistRow = ({ item, currency, templates, onUpdate }: WorklistRowProps) => {
   const [panel, setPanel] = useState<Panel>("none");
+  const [queued, setQueued] = useState(false);
   const meta = LEAK_META[item.leakType];
   const tone = TONE_CLASSES[meta.tone];
   const priority = priorityPill(item.priorityScore);
@@ -93,6 +97,26 @@ export const WorklistRow = ({ item, currency, onUpdate }: WorklistRowProps) => {
           </div>
         )}
 
+        {queued && (
+          <p className="mt-2 flex items-center gap-1 text-xs text-rr-recovered-ink" role="status">
+            <Check size={13} />
+            WhatsApp message queued. It goes out within a minute, outside quiet hours.
+          </p>
+        )}
+
+        {panel === "message" && item.contactPhone && (
+          <MessagePanel
+            item={item}
+            phone={item.contactPhone}
+            templates={templates}
+            onCancel={() => setPanel("none")}
+            onQueued={() => {
+              setPanel("none");
+              setQueued(true);
+            }}
+          />
+        )}
+
         {panel === "lost" && (
           <LostForm onCancel={() => setPanel("none")} onConfirm={(note) => update({ status: "lost", resolutionNote: note })} />
         )}
@@ -133,7 +157,16 @@ const RowActions = ({ item, panel, setPanel, update }: RowActionsProps) => {
 
   return (
     <>
-      <WhatsAppLink phone={item.contactPhone} patientName={item.patientName} />
+      <Button
+        variant="outline"
+        disabled={!item.contactPhone}
+        title={item.contactPhone ? undefined : "No phone number on file"}
+        aria-expanded={panel === "message"}
+        onClick={() => setPanel(panel === "message" ? "none" : "message")}
+      >
+        <MessageCircle size={15} />
+        Message
+      </Button>
       {item.status === "open" && (
         <Button variant="outline" onClick={() => update({ status: "in_progress" })}>
           <Play size={15} />
@@ -203,5 +236,64 @@ const LostForm = ({ onConfirm, onCancel }: { onConfirm: (note: string | null) =>
         Cancel
       </Button>
     </form>
+  );
+};
+
+/** Templates for this leak type first; general templates (no leak type) are offered too. */
+const templatesFor = (item: WorklistItem, templates: MessageTemplate[]): MessageTemplate[] => {
+  const active = templates.filter((template) => template.isActive);
+  const matching = active.filter((template) => template.leakType === item.leakType || template.leakType === null);
+  return matching.length > 0 ? matching : active;
+};
+
+const MessagePanel = ({
+  item,
+  phone,
+  templates,
+  onCancel,
+  onQueued,
+}: {
+  item: WorklistItem;
+  phone: string;
+  templates: MessageTemplate[];
+  onCancel: () => void;
+  onQueued: () => void;
+}) => {
+  const options = templatesFor(item, templates);
+  const [templateId, setTemplateId] = useState(options[0]?.id ?? "");
+  const send = useSendMessage();
+  const firstName = item.patientName.split(" ")[0] ?? "";
+
+  if (options.length === 0) {
+    return <p className="mt-2 text-sm text-rr-ink-soft">No active WhatsApp templates. Add one in Automations.</p>;
+  }
+
+  return (
+    <div className="mt-3 flex max-w-xl flex-col gap-3 rounded-xl border border-rr-line p-3">
+      <TemplatePicker
+        templates={options}
+        value={templateId}
+        onChange={setTemplateId}
+        previewValues={firstName ? { patient_first_name: firstName } : undefined}
+      />
+      {send.isError && <ErrorBanner message={send.error.message} onDismiss={() => send.reset()} />}
+      <div className="flex flex-wrap justify-end gap-2">
+        <Button variant="ghost" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button
+          disabled={!templateId || send.isPending}
+          onClick={() =>
+            send.mutate(
+              { kind: "template", contactPhone: phone, templateId, recoveryItemId: item.id },
+              { onSuccess: onQueued },
+            )
+          }
+        >
+          <Send size={15} />
+          {send.isPending ? "Queuing…" : "Send on WhatsApp"}
+        </Button>
+      </div>
+    </div>
   );
 };

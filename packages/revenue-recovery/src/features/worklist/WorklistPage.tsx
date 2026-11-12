@@ -2,6 +2,7 @@ import { useMemo, useState, type ReactNode } from "react";
 import { PartyPopper, Search } from "lucide-react";
 import { Card, EmptyState, ErrorBanner, ListSkeleton, SegmentedControl, cx } from "../../components/ui";
 import { useRecoveryContext } from "../../data/context";
+import { useTemplates } from "../../data/useOutreach";
 import { useRecoveryItemActions } from "../../data/useRecoveryItemActions";
 import { useWorklist } from "../../data/useWorklist";
 import { LEAK_META, TONE_CLASSES } from "../../domain/leaks";
@@ -20,6 +21,7 @@ export const WorklistPage = () => {
   const { currency } = useRecoveryContext();
   const { data, isPending, isError, error } = useWorklist();
   const actions = useRecoveryItemActions();
+  const templates = useTemplates();
   const [view, setView] = useState<WorklistView>("active");
   const [leak, setLeak] = useState<LeakFilter>("all");
   const [search, setSearch] = useState("");
@@ -91,6 +93,7 @@ export const WorklistPage = () => {
                 key={item.id}
                 item={item}
                 currency={currency}
+                templates={templates.data ?? []}
                 onUpdate={(patch) => actions.mutate({ id: item.id, patch })}
               />
             ))}

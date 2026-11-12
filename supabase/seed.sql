@@ -90,3 +90,6 @@ insert into recovery.recovered_bookings (clinic_id, appointment_id, recovery_ite
 select '00000000-0000-0000-0000-00000000c001', r.appointment_id, r.id, r.patient_id, r.estimated_value, r.resolved_at
 from recovered r
 join booked b on b.id = r.appointment_id;
+
+-- Starter WhatsApp templates and reminder sequences.
+select recovery.install_default_automations('00000000-0000-0000-0000-00000000c001');

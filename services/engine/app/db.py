@@ -15,6 +15,8 @@ def create_pool(conninfo: str, max_size: int) -> ConnectionPool[Connection[Row]]
         conninfo,
         min_size=1,
         max_size=max_size,
-        kwargs={"row_factory": dict_row, "autocommit": True},
+        # prepare_threshold=None: Supabase's transaction-mode pooler cannot keep prepared statements
+        # across transactions, so psycopg must not create them.
+        kwargs={"row_factory": dict_row, "autocommit": True, "prepare_threshold": None},
         open=False,
     )

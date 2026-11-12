@@ -81,6 +81,19 @@
     cursor: not-allowed;
   }
 
+  /* Browsers give form fields their own (often monospace) font unless told to inherit. */
+  .rr-root input,
+  .rr-root textarea,
+  .rr-root select {
+    font: inherit;
+    color: inherit;
+  }
+
+  .rr-root ::placeholder {
+    color: var(--color-rr-ink-faint);
+    opacity: 1;
+  }
+
   .rr-root :focus-visible {
     outline: 2px solid var(--color-rr-primary);
     outline-offset: 2px;

@@ -29,7 +29,7 @@ Conn = psycopg.Connection[dict[str, Any]]
 @pytest.fixture(scope="module")
 def conn():
     assert DATABASE_URL
-    with psycopg.connect(DATABASE_URL, row_factory=dict_row, autocommit=True) as connection:
+    with psycopg.connect(DATABASE_URL, row_factory=dict_row, autocommit=True, prepare_threshold=None) as connection:
         yield connection
 
 

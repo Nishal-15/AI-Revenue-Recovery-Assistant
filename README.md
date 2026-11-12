@@ -103,6 +103,53 @@ Each item gets a 0–100 priority from its value (log-scaled) and urgency, plus 
 enquiries. Rescanning never duplicates items, never reopens resolved ones, and keeps staff's
 "in progress" and snooze state. Every status change is written to `audit_log`.
 
+## WhatsApp
+
+Without Meta credentials the engine runs in **dry-run mode**: every message goes through planning,
+approval, quiet hours, consent and weekly-limit checks, and is logged instead of sent
+(`GET /health` shows `"whatsapp": "dry-run"`).
+
+**How a reminder flows**
+
+1. The scan finds a leak, e.g. an appointment in 30 hours that is not confirmed.
+2. The planner picks the sequence step that is due (e.g. "2 days before the appointment") and queues the template.
+   With *Staff approval* on (the default), it waits in the WhatsApp inbox until someone approves it.
+3. The dispatcher sends it, unless the patient opted out, it is quiet hours (it waits until morning), the
+   weekly limit is reached, or it is free text outside WhatsApp's 24-hour reply window.
+4. The patient taps a button: **Confirm** confirms the appointment and recovers the item; **Reschedule**,
+   **Call me** or **Book** create a callback for the front desk. **STOP** opts them out and cancels anything pending.
+   A message from an unknown number becomes a new enquiry.
+
+**Going live**
+
+1. In Meta Business Manager create a WhatsApp Business app and note the **phone number ID**, a **permanent
+   access token** and the **app secret**.
+2. In WhatsApp Manager create these templates (category *Utility*, language *English*). Names must match exactly:
+
+   | Template name | Body | Quick-reply buttons |
+   |---|---|---|
+   | `appointment_confirmation` | Hi {{1}}, this is {{2}}. Your {{3}} is booked for {{4}}. Please tap Confirm, or Reschedule if the time no longer works for you. | Confirm, Reschedule |
+   | `appointment_final_reminder` | Hi {{1}}, a quick reminder of your {{2}} at {{3}}. Tap Confirm so we can keep your slot ready. | Confirm, Reschedule |
+   | `enquiry_followup` | Hi {{1}}, thank you for contacting {{2}}. We would be glad to help. Would you like us to book a consultation for you? | Book, Call me |
+   | `followup_due` | Hi {{1}}, our records show your {{2}} is now due at {{3}}. Shall we find a time that suits you? | Book, Call me |
+
+3. Set `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_APP_SECRET` and a `WHATSAPP_VERIFY_TOKEN` of your choice in the engine's `.env`.
+4. Register the webhook `https://<engine-host>/webhooks/whatsapp` with that verify token and subscribe to **messages**.
+5. In the module's **Settings**, enter the clinic's phone number ID.
+6. Collect WhatsApp opt-in from patients (for example on the registration form). Business-initiated messages
+   need it under WhatsApp policy and data-protection law.
+
+New clinics get these templates and sequences with `select recovery.install_default_automations('<clinic id>');`.
+
+| Endpoint | Purpose |
+|---|---|
+| `POST /jobs/scan` | Detect leaks and plan reminders (all clinics, or `?clinic_id=`) |
+| `POST /jobs/dispatch` | Send due messages |
+| `GET/POST /webhooks/whatsapp` | Meta webhook: verification, replies, button taps, delivery receipts |
+| `POST /ai/classify-enquiry` | Gemini enquiry classification |
+
+With `ENABLE_SCHEDULER=true` the engine dispatches every minute and scans every `SCAN_INTERVAL_MINUTES`.
+
 ## Mounting inside the Dental OS
 
 ```tsx
@@ -123,7 +170,7 @@ import "@dental-os/revenue-recovery/style.css";
 |---|---|---|
 | 0 | Repo, schema and RLS, design system, dashboard, engine skeleton, Gemini client | done |
 | 1 | Detection scan for the 4 leak types, worklist, confirmations, recalls | done |
-| 2 | WhatsApp Cloud API: templates, sending, inbound webhook, consent, quiet hours, automations | next |
-| 3 | Gemini: message drafting, reply intent (confirm / reschedule / stop), priority scoring | |
+| 2 | WhatsApp Cloud API: templates, sending, inbound webhook, consent, quiet hours, automations | done |
+| 3 | Gemini: message drafting, reply intent (confirm / reschedule / stop), priority scoring | next |
 | 4 | Booking attribution, reports, polish | |
 | 5 | Connect to the Dental OS, pilot with one clinic | |
