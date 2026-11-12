@@ -1,0 +1,7 @@
+/* Imitates a host app's own global styles, to prove the module is isolated from them. */
+html, body, #root { height: 100%; margin: 0; }
+body { font-family: system-ui, sans-serif; background: #eef3f4; }
+.host-layout { display: flex; height: 100%; }
+.host-sidebar { width: 220px; flex-shrink: 0; background: #fff; border-right: 1px solid #dfe7e9; padding: 20px; }
+.host-content { flex: 1; min-width: 0; overflow: auto; }
+@media (max-width: 768px) { .host-sidebar { display: none; } }

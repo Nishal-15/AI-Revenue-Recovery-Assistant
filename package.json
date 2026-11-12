@@ -1,0 +1,10 @@
+{
+  "name": "revenue-recovery",
+  "private": true,
+  "workspaces": ["packages/*", "apps/*"],
+  "scripts": {
+    "dev": "npm run dev -w @dental-os/playground",
+    "build": "npm run build -w @dental-os/revenue-recovery",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  }
+}

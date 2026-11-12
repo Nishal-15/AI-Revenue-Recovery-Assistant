@@ -1,0 +1,100 @@
+/*
+ * Revenue Recovery styles.
+ * Tailwind's preflight is intentionally NOT imported: this module renders inside
+ * the dental OS, and a global reset would restyle the host app. Instead a small
+ * reset is scoped to .rr-root, and all brand tokens are namespaced "rr-".
+ */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+@source "../";
+
+@theme {
+  /* Surfaces */
+  --color-rr-bg: #f7fafb;
+  --color-rr-surface: #ffffff;
+  --color-rr-line: #e3ecee;
+  --color-rr-line-strong: #cfdcdf;
+
+  /* Text */
+  --color-rr-ink: #1e293b;
+  --color-rr-ink-soft: #475569;
+  --color-rr-ink-faint: #8193a3;
+
+  /* Brand: clinical teal + mint */
+  --color-rr-primary: #0e9f9a;
+  --color-rr-primary-strong: #0b7f7b;
+  --color-rr-primary-soft: #ddf4f1;
+
+  /* Outcome semantics */
+  --color-rr-recovered: #10b981;
+  --color-rr-recovered-soft: #e3f8ef;
+  --color-rr-risk: #f59e0b;
+  --color-rr-risk-soft: #fef3dc;
+  --color-rr-missed: #f26b5b;
+  --color-rr-missed-soft: #fde8e5;
+  --color-rr-info: #6c8cff;
+  --color-rr-info-soft: #e9eeff;
+
+  --font-rr-display: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-rr-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --radius-rr-card: 1rem;
+  --shadow-rr-card: 0 1px 2px rgb(15 60 70 / 0.04), 0 4px 16px rgb(15 60 70 / 0.05);
+  --shadow-rr-lift: 0 2px 4px rgb(15 60 70 / 0.05), 0 12px 32px rgb(15 60 70 / 0.08);
+}
+
+@layer base {
+  .rr-root,
+  .rr-root *,
+  .rr-root ::before,
+  .rr-root ::after {
+    box-sizing: border-box;
+    border: 0 solid;
+    margin: 0;
+    padding: 0;
+  }
+
+  .rr-root {
+    font-family: var(--font-rr-sans);
+    color: var(--color-rr-ink);
+    background: var(--color-rr-bg);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .rr-root button {
+    font: inherit;
+    color: inherit;
+    background: none;
+    cursor: pointer;
+  }
+
+  .rr-root button:disabled {
+    cursor: not-allowed;
+  }
+
+  .rr-root :focus-visible {
+    outline: 2px solid var(--color-rr-primary);
+    outline-offset: 2px;
+  }
+
+  .rr-root h1,
+  .rr-root h2,
+  .rr-root h3 {
+    font-family: var(--font-rr-display);
+    font-size: inherit;
+    font-weight: inherit;
+  }
+
+  .rr-root ul {
+    list-style: none;
+  }
+}
+
+@layer utilities {
+  .rr-tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
