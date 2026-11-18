@@ -180,7 +180,7 @@ def test_appointment_time_passing_unconfirmed_dismisses(conn):
     scan_clinic(conn, clinic.id, NOW + timedelta(hours=21))
 
     item = items(conn, clinic.id)["unconfirmed_appointment"]
-    assert (item["status"], item["resolution_note"]) == ("dismissed", "Appointment time passed unconfirmed")
+    assert (item["status"], item["resolution_note"]) == ("dismissed", "Appointment time passed without confirming")
 
 
 def test_resolved_items_are_never_reopened(conn):

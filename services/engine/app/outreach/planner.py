@@ -35,6 +35,7 @@ class PlanResult:
     awaiting_approval: int = 0
     failed: int = 0
     cancelled_stale: int = 0
+    refreshed: int = 0
 
 
 CANDIDATES_SQL = """
@@ -118,11 +119,44 @@ where m.clinic_id = %(clinic_id)s and m.automation_rule_id is not null
 """
 
 
+# Reminders not yet sent, whose text may now be out of date (e.g. the appointment was moved).
+PENDING_SQL = """
+select m.id, m.recovery_item_id, m.contact_phone, m.body, m.template_params, t.body as template_body, t.variables
+from recovery.outreach_messages m
+join recovery.message_templates t on t.id = m.template_id
+where m.clinic_id = %(clinic_id)s and m.automation_rule_id is not null
+  and m.status in ('queued', 'awaiting_approval')
+"""
+
+
+def refresh_pending_text(conn: Connection[Row], clinic_id: UUID) -> int:
+    """Re-fills reminders waiting to be sent, so a rescheduled appointment never goes out with its old time."""
+    refreshed = 0
+    with conn.cursor() as cursor:
+        cursor.execute(PENDING_SQL, {"clinic_id": clinic_id})
+        pending = cursor.fetchall()
+        for message in pending:
+            values = load_values(conn, clinic_id=clinic_id, item_id=message["recovery_item_id"], phone=message["contact_phone"])
+            try:
+                params = resolve_params(message["variables"], values)
+            except MissingVariableError:
+                continue
+            if params == list(message["template_params"] or []):
+                continue
+            cursor.execute(
+                "update recovery.outreach_messages set body = %(body)s, template_params = %(params)s where id = %(id)s",
+                {"id": message["id"], "body": render_body(message["template_body"], params), "params": Jsonb(params)},
+            )
+            refreshed += 1
+    return refreshed
+
+
 def plan_clinic(conn: Connection[Row], clinic_id: UUID, now: datetime) -> PlanResult:
     result = PlanResult()
     with conn.transaction(), conn.cursor() as cursor:
         cursor.execute(CANCEL_STALE_SQL, {"clinic_id": clinic_id})
         result.cancelled_stale = cursor.rowcount
+        result.refreshed = refresh_pending_text(conn, clinic_id)
         cursor.execute(TEMPLATES_SQL, {"clinic_id": clinic_id})
         templates = {row["id"]: row for row in cursor.fetchall()}
         cursor.execute(CANDIDATES_SQL, {"clinic_id": clinic_id, "now": now})

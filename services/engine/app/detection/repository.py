@@ -108,7 +108,7 @@ RESOLUTION_QUERIES = (
            case when e.status = 'booked' or e.booked_appointment_id is not null then 'recovered'
                 when e.status = 'lost' then 'lost' end as new_status,
            case when e.status = 'booked' or e.booked_appointment_id is not null then 'Booked'
-                when e.status = 'lost' then 'Enquiry marked lost' end as note
+                when e.status = 'lost' then 'Not interested' end as note
     from recovery.recovery_items i
     join recovery.enquiries e on e.id = i.enquiry_id
     where i.clinic_id = %(clinic_id)s and i.leak_type = 'missed_enquiry' and i.status in ('open', 'in_progress')
@@ -117,7 +117,7 @@ RESOLUTION_QUERIES = (
     select i.id,
            case when t.done_at is not null or t.due_at > %(now)s then 'dismissed' end as new_status,
            case when t.done_at is not null then 'Task completed'
-                when t.due_at > %(now)s then 'Task rescheduled' end as note
+                when t.due_at > %(now)s then 'Call moved to a later time' end as note
     from recovery.recovery_items i
     join recovery.staff_tasks t on t.id = i.task_id
     where i.clinic_id = %(clinic_id)s and i.leak_type = 'overdue_followup' and i.status in ('open', 'in_progress')
@@ -132,8 +132,8 @@ RESOLUTION_QUERIES = (
                          when 'completed' then 'Attended'
                          when 'cancelled' then 'Cancelled'
                          when 'no_show' then 'No-show'
-                         else case when a.starts_at <= %(now)s then 'Appointment time passed unconfirmed'
-                                   else 'Rescheduled outside the confirmation window' end
+                         else case when a.starts_at <= %(now)s then 'Appointment time passed without confirming'
+                                   else 'Appointment moved to a later date' end
            end as note
     from recovery.recovery_items i
     join recovery.appointments a on a.id = i.appointment_id
@@ -146,7 +146,7 @@ RESOLUTION_QUERIES = (
                 when f.due_on >= %(cutoff)s then 'dismissed' end as new_status,
            case when f.booked_appointment_id is not null then 'Booked'
                 when f.completed_at is not null then 'Completed'
-                when f.due_on >= %(cutoff)s then 'Follow-up rescheduled' end as note
+                when f.due_on >= %(cutoff)s then 'Moved to a later date' end as note
     from recovery.recovery_items i
     join recovery.planned_followups f on f.id = i.followup_id
     where i.clinic_id = %(clinic_id)s and i.leak_type = 'lapsed_patient' and i.status in ('open', 'in_progress')

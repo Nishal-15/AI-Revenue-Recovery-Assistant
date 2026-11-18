@@ -318,3 +318,17 @@ def test_events_for_unknown_numbers_are_ignored(conn):
     event = StatusUpdate(phone_number_id="not-ours", provider_message_id="x", status="read", at=NOW, error=None)
     assert handle_events(conn, [event], NOW).ignored == 1
 
+
+
+def test_rescheduled_appointment_updates_waiting_reminder(conn):
+    clinic = Clinic(conn, require_approval=True)
+    clinic.detect_and_plan()
+    assert "5:30 pm" in clinic.outbound()[0]["body"]
+
+    run(conn, "update recovery.appointments set starts_at = starts_at + interval '2 hours' where id = %(id)s",
+        id=clinic.appointment)
+    result = clinic.detect_and_plan(NOW + timedelta(minutes=5))
+
+    assert result.refreshed == 1
+    message = clinic.outbound()[0]
+    assert "7:30 pm" in message["body"] and message["template_params"][3] == "Fri 13 Nov, 7:30 pm"
