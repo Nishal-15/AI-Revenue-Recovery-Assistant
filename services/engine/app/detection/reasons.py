@@ -25,13 +25,13 @@ def plural(count: int, unit: str) -> str:
 
 
 def format_elapsed(delta: timedelta) -> str:
-    """Short, rounded-down span: '45 min', '3 h', '2 days'."""
+    """Rounded-down span in plain words: '45 minutes', '3 hours', '2 days'."""
     minutes = max(int(delta.total_seconds() // 60), 0)
     if minutes < 60:
-        return f"{minutes} min"
+        return plural(minutes, "minute")
     hours = minutes // 60
     if hours < 48:
-        return f"{hours} h"
+        return plural(hours, "hour")
     return plural(hours // 24, "day")
 
 

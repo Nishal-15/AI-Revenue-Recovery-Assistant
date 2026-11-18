@@ -54,7 +54,7 @@ export const buildDemoSummary = (currency: string): DashboardSummary => ({
       id: "demo-3",
       leakType: "missed_enquiry",
       patientName: "Meera Iyer",
-      reason: "WhatsApp enquiry about aligners, unanswered for 3 h",
+      reason: "WhatsApp enquiry about aligners, unanswered for 3 hours",
       estimatedValue: 65_000,
       priorityScore: 84,
       dueAt: hoursFromNow(-3),

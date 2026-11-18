@@ -19,7 +19,7 @@ const DUE_NOUNS: Partial<Record<LeakType, string>> = { unconfirmed_appointment: 
 
 export const describeStep = (step: AutomationStep, leakType: LeakType): string => {
   if (step.anchor === "detected") {
-    return step.offsetMinutes === 0 ? "As soon as it is found" : `${formatDuration(step.offsetMinutes)} after it is found`;
+    return step.offsetMinutes === 0 ? "Straight away" : `${formatDuration(step.offsetMinutes)} later, if there's still no answer`;
   }
   const noun = DUE_NOUNS[leakType] ?? "the due date";
   if (step.offsetMinutes === 0) return `At ${noun}`;
@@ -31,7 +31,7 @@ export const AutomationsPage = () => {
   const templates = useTemplates();
   const setActive = useSetRuleActive();
 
-  if (rules.isPending || templates.isPending) return <ListSkeleton label="Loading automations" />;
+  if (rules.isPending || templates.isPending) return <ListSkeleton label="Loading automatic reminders" />;
   if (rules.isError) return <ErrorBanner message={rules.error.message} />;
 
   return (
@@ -42,13 +42,10 @@ export const AutomationsPage = () => {
         </span>
         <div className="text-[13px] text-rr-ink-soft">
           <p>
-            Each sequence sends WhatsApp templates while an item stays open. It stops as soon as the patient replies,
-            confirms or books, or when staff resolve or snooze the item. Quiet hours, weekly limits and opt-outs from
-            Settings always apply.
+            Reminders stop by themselves as soon as the patient replies, confirms or books, or when you mark them on
+            Today. They never go out at night, and never to anyone who asked you to stop.
           </p>
-          <p className="mt-1">
-            Overdue follow-ups are callbacks staff promised, so they are never automated.
-          </p>
+          <p className="mt-1">Promised call-backs are never automatic: those need a person.</p>
         </div>
       </Card>
 
@@ -56,7 +53,7 @@ export const AutomationsPage = () => {
 
       {rules.data.length === 0 ? (
         <Card>
-          <EmptyState icon={<Workflow size={22} />} title="No automations yet" />
+          <EmptyState icon={<Workflow size={22} />} title="No automatic reminders yet" />
         </Card>
       ) : (
         rules.data.map((rule) => (
@@ -98,7 +95,7 @@ const RuleCard = ({
           <h2 className="truncate text-[15px] font-semibold">{rule.name}</h2>
           <p className="text-[13px] text-rr-ink-faint">{meta.label}</p>
         </div>
-        <Switch checked={rule.isActive} onToggle={onToggle} disabled={busy} label={`${rule.name} automation`} />
+        <Switch checked={rule.isActive} onToggle={onToggle} disabled={busy} label={`${rule.name}: on or off`} />
       </header>
       <ol className="flex flex-col gap-4 px-4 py-4 sm:px-5">
         {rule.steps.map((step, index) => {
@@ -114,7 +111,7 @@ const RuleCard = ({
                   {template ? (
                     <Pill tone="neutral">{template.name}</Pill>
                   ) : (
-                    <Pill tone="missed">Template missing</Pill>
+                    <Pill tone="missed">Message missing</Pill>
                   )}
                 </div>
                 {template && (
@@ -123,7 +120,7 @@ const RuleCard = ({
                       {previewTemplate(template)}
                     </p>
                     <p className="mt-1 text-xs text-rr-ink-faint">
-                      Meta template name:{" "}
+                      WhatsApp name:{" "}
                       <code className="rounded bg-rr-bg px-1 py-0.5 font-mono">{template.whatsappTemplateName ?? "not set"}</code>
                       {template.buttons.length > 0 && ` · Buttons: ${template.buttons.join(", ")}`}
                     </p>

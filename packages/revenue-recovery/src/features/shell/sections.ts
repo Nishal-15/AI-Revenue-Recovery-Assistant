@@ -1,39 +1,17 @@
-import {
-  BarChart3,
-  CalendarCheck2,
-  LayoutDashboard,
-  ListTodo,
-  MessagesSquare,
-  Settings2,
-  UserRoundSearch,
-  Workflow,
-  type LucideIcon,
-} from "lucide-react";
+import { CalendarCheck2, MessagesSquare, Settings2, Sun, TrendingUp, type LucideIcon } from "lucide-react";
 
-export const SECTION_IDS = [
-  "dashboard",
-  "worklist",
-  "confirmations",
-  "recalls",
-  "inbox",
-  "automations",
-  "reports",
-  "settings",
-] as const;
+export const SECTION_IDS = ["today", "appointments", "messages", "results", "settings"] as const;
 
 export type SectionId = (typeof SECTION_IDS)[number];
 
-type Section = { label: string; icon: LucideIcon; plannedPhase: number | null };
+type Section = { label: string; icon: LucideIcon };
 
 export const SECTIONS = {
-  dashboard: { label: "Dashboard", icon: LayoutDashboard, plannedPhase: null },
-  worklist: { label: "Worklist", icon: ListTodo, plannedPhase: null },
-  confirmations: { label: "Confirmations", icon: CalendarCheck2, plannedPhase: null },
-  recalls: { label: "Recalls", icon: UserRoundSearch, plannedPhase: null },
-  inbox: { label: "WhatsApp inbox", icon: MessagesSquare, plannedPhase: null },
-  automations: { label: "Automations", icon: Workflow, plannedPhase: null },
-  reports: { label: "Reports", icon: BarChart3, plannedPhase: null },
-  settings: { label: "Settings", icon: Settings2, plannedPhase: null },
+  today: { label: "Today", icon: Sun },
+  appointments: { label: "Appointments", icon: CalendarCheck2 },
+  messages: { label: "Messages", icon: MessagesSquare },
+  results: { label: "Results", icon: TrendingUp },
+  settings: { label: "Settings", icon: Settings2 },
 } as const satisfies Record<SectionId, Section>;
 
 export const isSectionId = (value: string): value is SectionId =>

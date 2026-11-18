@@ -4,6 +4,7 @@
  * the dental OS, and a global reset would restyle the host app. Instead a small
  * reset is scoped to .rr-root, and all brand tokens are namespaced "rr-".
  */
+@import url("https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,500..800&display=swap");
 @layer theme, base, components, utilities;
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/utilities.css" layer(utilities);
@@ -11,44 +12,44 @@
 @source "../";
 
 @theme {
-  /* Surfaces */
-  --color-rr-bg: #f7fafb;
+  /* Mint "clinic paper" background, white surfaces, deep teal ink. */
+  --color-rr-bg: #edf5f2;
   --color-rr-surface: #ffffff;
-  --color-rr-line: #e3ecee;
-  --color-rr-line-strong: #cfdcdf;
+  --color-rr-line: #d9e7e2;
+  --color-rr-line-strong: #bfd4cc;
 
-  /* Text */
-  --color-rr-ink: #1e293b;
-  --color-rr-ink-soft: #475569;
-  --color-rr-ink-faint: #8193a3;
+  --color-rr-ink: #12343b;
+  --color-rr-ink-soft: #45626a;
+  --color-rr-ink-faint: #6f878d;
 
-  /* Brand: clinical teal + mint */
-  --color-rr-primary: #0e9f9a;
-  --color-rr-primary-strong: #0b7f7b;
-  --color-rr-primary-soft: #ddf4f1;
+  /* Scrub green: the one action colour. */
+  --color-rr-primary: #0f7b6c;
+  --color-rr-primary-strong: #0a5f53;
+  --color-rr-primary-soft: #d6efe9;
 
-  /* Outcome semantics */
-  --color-rr-recovered: #10b981;
-  --color-rr-recovered-soft: #e3f8ef;
-  --color-rr-risk: #f59e0b;
-  --color-rr-risk-soft: #fef3dc;
-  --color-rr-missed: #f26b5b;
-  --color-rr-missed-soft: #fde8e5;
-  --color-rr-info: #6c8cff;
-  --color-rr-info-soft: #e9eeff;
+  /* Meaning colours: booked (green), needs you (sunflower), urgent (coral), information (blue). */
+  --color-rr-recovered: #1e9e62;
+  --color-rr-recovered-soft: #ddf3e7;
+  --color-rr-risk: #e9a21b;
+  --color-rr-risk-soft: #fdf0d3;
+  --color-rr-missed: #d9534a;
+  --color-rr-missed-soft: #fbe3e1;
+  --color-rr-info: #4c6fd8;
+  --color-rr-info-soft: #e6ecfb;
 
-  /* Readable text on the matching -soft surface (pills, badges) */
-  --color-rr-recovered-ink: #047857;
-  --color-rr-risk-ink: #9a5b00;
-  --color-rr-missed-ink: #c03a2b;
-  --color-rr-info-ink: #3b55c9;
+  /* Readable text on the matching soft surface */
+  --color-rr-recovered-ink: #13724a;
+  --color-rr-risk-ink: #7a5000;
+  --color-rr-missed-ink: #a8322a;
+  --color-rr-info-ink: #3350a8;
 
-  --font-rr-display: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-rr-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  /* Bricolage Grotesque for headlines, Lexend (designed for easy reading) for everything else. */
+  --font-rr-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-rr-sans: "Lexend", ui-sans-serif, system-ui, sans-serif;
 
-  --radius-rr-card: 1rem;
-  --shadow-rr-card: 0 1px 2px rgb(15 60 70 / 0.04), 0 4px 16px rgb(15 60 70 / 0.05);
-  --shadow-rr-lift: 0 2px 4px rgb(15 60 70 / 0.05), 0 12px 32px rgb(15 60 70 / 0.08);
+  --radius-rr-card: 1.25rem;
+  --shadow-rr-card: 0 1px 0 rgb(18 52 59 / 0.04), 0 8px 24px -12px rgb(18 52 59 / 0.12);
+  --shadow-rr-lift: 0 2px 0 rgb(18 52 59 / 0.05), 0 18px 40px -16px rgb(18 52 59 / 0.22);
 }
 
 @layer base {
@@ -66,7 +67,8 @@
     font-family: var(--font-rr-sans);
     color: var(--color-rr-ink);
     background: var(--color-rr-bg);
-    line-height: 1.5;
+    font-size: 15px;
+    line-height: 1.55;
     -webkit-font-smoothing: antialiased;
   }
 

@@ -17,7 +17,7 @@ export const TemplatePicker = ({ templates, value, onChange, previewValues }: Te
   return (
     <div className="flex flex-col gap-2">
       <label htmlFor={selectId} className="text-xs font-medium text-rr-ink-soft">
-        WhatsApp template
+        Choose a message
       </label>
       <select
         id={selectId}

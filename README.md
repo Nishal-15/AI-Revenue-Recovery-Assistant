@@ -114,7 +114,7 @@ approval, quiet hours, consent and weekly-limit checks, and is logged instead of
 
 1. The scan finds a leak, e.g. an appointment in 30 hours that is not confirmed.
 2. The planner picks the sequence step that is due (e.g. "2 days before the appointment") and queues the template.
-   With *Staff approval* on (the default), it waits in the WhatsApp inbox until someone approves it.
+   With *Check reminders before they are sent* on (the default), it waits under **Messages** until someone presses Send.
 3. The dispatcher sends it, unless the patient opted out, it is quiet hours (it waits until morning), the
    weekly limit is reached, or it is free text outside WhatsApp's 24-hour reply window.
 4. The patient taps a button: **Confirm** confirms the appointment and recovers the item; **Reschedule**,
@@ -166,7 +166,7 @@ that was sent, or a staff member starting or recovering a worklist item.
 - Marking an item "Recovered" by hand adds no revenue unless a booking exists.
 - The booking closes the lead it came from (item recovered, enquiry marked booked).
 
-The **Reports** tab shows, for this month, last month or 90 days:
+The **Results** tab shows, for this month, last month or 90 days:
 - recovered revenue and bookings (new and saved);
 - the recovery rate;
 - what was handled without staff;
@@ -262,12 +262,27 @@ Logs: `npm run tail --prefix deploy/cloudflare/engine`.
 | Integrity | Staff can only queue outbound messages and approve or cancel them, and only change workflow fields (status, snooze, note) on worklist items. Delivery status, inbound messages, AI output, leak values and recovered bookings are written only by the engine, so reports cannot be inflated from the browser. Approvals always record the real approver. |
 | AI | Per-clinic switch (Settings → Privacy). When on, message text and the patient's first name go to Gemini; phone numbers never do. Use Gemini's paid tier for patient data. |
 | Retention | Message text and AI notes are deleted after the clinic's retention period (default 365 days); dates and statuses stay so reports still add up. |
-| Erasure | Owners and managers can delete a contact's messages and enquiries from the WhatsApp inbox (trash icon), or with `select recovery.forget_contact('<clinic id>', '<phone>');`. An opt-out is kept so the number is never contacted again; the audit log records counts, not the number. Patient records belong to the Dental OS and are not touched. |
+| Erasure | Owners and managers can delete a contact's messages and enquiries from **Messages** (trash icon), or with `select recovery.forget_contact('<clinic id>', '<phone>');`. An opt-out is kept so the number is never contacted again; the audit log records counts, not the number. Patient records belong to the Dental OS and are not touched. |
 | Logs | No names, phone numbers or message text in engine logs; the web server access log is off (the webhook verification URL carries a token). |
 | Secrets | Keys live in `services/engine/.env` (git-ignored) and Cloudflare Worker secrets. The engine API docs (`/docs`) are off unless `ENGINE_DOCS=true`. |
 
 **Updating an existing database:** `npm run db:setup-sql -- --from 8` writes `supabase/setup_update.sql` with only the newer
 migrations; paste it into the SQL Editor. New projects use `npm run db:setup-sql` → `supabase/setup_all_in_one.sql`.
+
+## Screens
+
+Five tabs, written for front-desk staff rather than software people:
+
+| Tab | What it is for |
+|---|---|
+| **Today** | "6 patients need you today." The next patient to contact, with Send WhatsApp / Call and how it went (Booked, Not coming, Not needed, Remind me later), then everyone else waiting. |
+| **Appointments** | The next 3 days, who has confirmed, and a one-click "Mark as confirmed". |
+| **Messages** | WhatsApp conversations, reminders waiting to be sent, and suggested replies. |
+| **Results** | Money and bookings won back, by type of follow-up, with a downloadable list. |
+| **Settings** | Message times and limits, when patients appear on Today, automatic reminders, privacy. |
+
+Design: mint "clinic paper" background, deep teal text, scrub-green buttons, sunflower for "needs you" and coral for
+urgent. Headlines use Bricolage Grotesque and text uses Lexend, a typeface designed for easy reading.
 
 ## Mounting inside the Dental OS
 

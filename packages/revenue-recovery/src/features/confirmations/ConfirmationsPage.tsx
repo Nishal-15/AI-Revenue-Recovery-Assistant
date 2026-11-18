@@ -53,13 +53,13 @@ export const ConfirmationsPage = () => {
       <Card className="flex flex-col gap-4 p-4 sm:p-5">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="text-sm text-rr-ink-soft">Next {CONFIRMATION_WINDOW_HOURS} hours</p>
+            <p className="text-sm text-rr-ink-soft">Next {CONFIRMATION_WINDOW_HOURS / 24} days</p>
             <p className="rr-tabular font-rr-display text-2xl font-bold">
               {confirmedCount} of {appointments.length} confirmed
             </p>
           </div>
           <div className="text-right">
-            <p className="text-xs text-rr-ink-faint">Unconfirmed value</p>
+            <p className="text-xs text-rr-ink-faint">Not confirmed yet</p>
             <p className="rr-tabular text-lg font-semibold text-rr-risk-ink">{formatMoney(unconfirmedValue, currency)}</p>
           </div>
         </div>
@@ -79,7 +79,7 @@ export const ConfirmationsPage = () => {
 
       {groups.length === 0 ? (
         <Card>
-          <EmptyState icon={<CalendarCheck2 size={22} />} title="No appointments in the next 72 hours" />
+          <EmptyState icon={<CalendarCheck2 size={22} />} title="No appointments in the next 3 days" />
         </Card>
       ) : (
         groups.map((group) => (
@@ -104,7 +104,7 @@ export const ConfirmationsPage = () => {
                       {appointment.status !== "confirmed" && (
                         <Button variant="outline" onClick={() => confirm.mutate(appointment.id)}>
                           <Check size={15} />
-                          Mark confirmed
+                          Mark as confirmed
                         </Button>
                       )}
                       <WhatsAppLink phone={appointment.patientPhone} patientName={appointment.patientName} />

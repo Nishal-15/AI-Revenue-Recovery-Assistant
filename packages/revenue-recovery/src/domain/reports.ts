@@ -76,5 +76,5 @@ export const periodRange = (period: ReportPeriod, now: Date = new Date()): { fro
 
 export const BOOKING_RULE_LABELS = {
   new_booking: "New booking",
-  saved_appointment: "Saved appointment",
+  saved_appointment: "Kept appointment",
 } as const satisfies Record<BookingRule, string>;

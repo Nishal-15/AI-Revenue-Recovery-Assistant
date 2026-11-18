@@ -9,8 +9,8 @@ import { formatMessageTime } from "../../lib/time";
 import { Composer } from "./Composer";
 
 const STATUS_LABELS = {
-  queued: "Queued · sends within a minute",
-  awaiting_approval: "Awaiting approval",
+  queued: "Sending in a minute",
+  awaiting_approval: "Waiting for your OK",
   sent: "Sent",
   delivered: "Delivered",
   read: "Read",
@@ -20,8 +20,8 @@ const STATUS_LABELS = {
 } as const satisfies Record<MessageStatus, string>;
 
 const INTENT_LABELS = {
-  confirm: { label: "Confirming", tone: "recovered" },
-  reschedule: { label: "Wants to reschedule", tone: "risk" },
+  confirm: { label: "Says yes", tone: "recovered" },
+  reschedule: { label: "Wants a new time", tone: "risk" },
   cancel: { label: "Cancelling", tone: "missed" },
   question: { label: "Question", tone: "info" },
   opt_out: { label: "Asked to stop", tone: "missed" },
@@ -67,7 +67,7 @@ export const Thread = ({ conversation, templates, onBack, className }: ThreadPro
         {unhandledIds.length > 0 && (
           <Button variant="outline" onClick={() => markHandled.mutate(unhandledIds)} disabled={markHandled.isPending}>
             <CheckCheck size={15} />
-            Mark handled
+            Mark as done
           </Button>
         )}
         <Button
@@ -141,7 +141,7 @@ const MessageBubble = ({ message, templateName }: { message: OutreachMessage; te
         {outbound && (message.automated || templateName) && (
           <p className="mb-1 flex items-center gap-1 text-[11px] font-semibold text-rr-primary-strong">
             {message.automated && <Bot size={12} />}
-            {message.automated ? "Automated" : "Template"}
+            {message.automated ? "Automatic reminder" : "Ready-made message"}
             {templateName && ` · ${templateName}`}
           </p>
         )}

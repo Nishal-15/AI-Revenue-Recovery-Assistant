@@ -89,13 +89,13 @@ def test_detects_all_four_leak_types(conn):
     enquiry = found["missed_enquiry"]
     assert enquiry["enquiry_id"] == clinic.enquiry
     assert enquiry["estimated_value"] == 65000
-    assert enquiry["reason"] == "WhatsApp enquiry about aligners, no reply for 3 h"
+    assert enquiry["reason"] == "WhatsApp enquiry about aligners, no reply for 3 hours"
     assert enquiry["patient_name"] == "Meera Iyer"
 
     task = found["overdue_followup"]
     assert task["task_id"] == clinic.task
     assert task["estimated_value"] == 18000  # priced by the patient's open crown follow-up
-    assert task["reason"] == "Callback overdue by 30 h: Call back about treatment quote"
+    assert task["reason"] == "Callback overdue by 30 hours: Call back about treatment quote"
 
     appointment = found["unconfirmed_appointment"]
     assert appointment["appointment_id"] == clinic.appointment
@@ -128,7 +128,7 @@ def test_later_scan_refreshes_open_items(conn):
 
     assert later.created == 0
     assert later.updated >= 1
-    assert items(conn, clinic.id)["missed_enquiry"]["reason"].endswith("no reply for 5 h")
+    assert items(conn, clinic.id)["missed_enquiry"]["reason"].endswith("no reply for 5 hours")
 
 
 def test_sources_clearing_resolve_their_items(conn):

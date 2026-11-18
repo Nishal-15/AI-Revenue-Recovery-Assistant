@@ -26,7 +26,7 @@ export const RevenueRecovery = ({
   const [queryClient] = useState(
     () => new QueryClient({ defaultOptions: { queries: { staleTime: 60_000, refetchOnWindowFocus: false } } }),
   );
-  const [localSection, setLocalSection] = useState<SectionId>("dashboard");
+  const [localSection, setLocalSection] = useState<SectionId>("today");
   const section = controlledSection ?? localSection;
 
   const contextValue = useMemo(

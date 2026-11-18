@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { Suspense, lazy, useState, type ReactNode } from "react";
 import { Download, FileBarChart2, Info } from "lucide-react";
 import { Button, Card, CardHeader, EmptyState, ErrorBanner, ListSkeleton, Pill, SegmentedControl, cx } from "../../components/ui";
 import { useRecoveryContext } from "../../data/context";
@@ -11,16 +11,19 @@ import { formatDate, formatMoney, formatPercent } from "../../lib/format";
 
 const PERIODS: ReportPeriod[] = ["this_month", "last_month", "last_90_days"];
 
+// The 3D "coming back" animation loads separately so the numbers never wait for it.
+const RecoveryFlow = lazy(() => import("../../components/three/RecoveryFlow"));
+
 export const ReportsPage = () => {
   const { currency } = useRecoveryContext();
   const [period, setPeriod] = useState<ReportPeriod>("this_month");
   const report = useReport(period);
 
   return (
-    <div className="flex flex-col gap-4">
-      <Card className="flex flex-wrap items-center justify-between gap-3 p-4 sm:p-5">
+    <div className="mx-auto flex max-w-6xl flex-col gap-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <SegmentedControl
-          label="Report period"
+          label="Show results for"
           value={period}
           onChange={setPeriod}
           options={PERIODS.map((value) => ({ value, label: PERIOD_LABELS[value] }))}
@@ -31,35 +34,54 @@ export const ReportsPage = () => {
           onClick={() => report.data && exportBookings(report.data.bookings, period, currency)}
         >
           <Download size={15} />
-          Export bookings (CSV)
+          Download list (Excel)
         </Button>
-      </Card>
+      </div>
 
       {report.isPending ? (
         <ListSkeleton label="Loading report" />
       ) : report.isError ? (
         <ErrorBanner message={report.error.message} />
       ) : (
-        <ReportBody report={report.data} currency={currency} />
+        <ReportBody report={report.data} currency={currency} period={period} />
       )}
     </div>
   );
 };
 
-const ReportBody = ({ report, currency }: { report: ReportSummary; currency: string }) => (
+const PERIOD_SENTENCE = {
+  this_month: "this month",
+  last_month: "last month",
+  last_90_days: "in the last 90 days",
+} as const satisfies Record<ReportPeriod, string>;
+
+const ReportBody = ({ report, currency, period }: { report: ReportSummary; currency: string; period: ReportPeriod }) => (
   <>
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      <Stat label="Revenue recovered" value={formatMoney(report.recoveredValue, currency)} tone="text-rr-recovered-ink">
-        from {report.recoveredBookings} bookings
+    <section className="grid grid-cols-1 items-center gap-2 overflow-hidden rounded-[1.75rem] bg-rr-surface shadow-rr-lift lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+      <div className="p-6 sm:p-8">
+        <h2 className="font-rr-display text-4xl leading-[1.05] font-extrabold tracking-tight text-balance sm:text-5xl">
+          {formatMoney(report.recoveredValue, currency)} came back {PERIOD_SENTENCE[period]}.
+        </h2>
+        <p className="mt-3 max-w-md text-lg text-pretty text-rr-ink-soft">
+          From {report.recoveredBookings} patients who booked or kept their appointment after you followed up.
+        </p>
+      </div>
+      <div className="h-52 lg:h-72" aria-hidden>
+        <Suspense fallback={null}>
+          <RecoveryFlow />
+        </Suspense>
+      </div>
+    </section>
+
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <Stat label="Bookings won back" value={String(report.recoveredBookings)}>
+        {report.newBookings} new bookings and {report.savedAppointments} kept appointments
       </Stat>
-      <Stat label="Bookings recovered" value={String(report.recoveredBookings)}>
-        {report.newBookings} new · {report.savedAppointments} saved appointments
+      <Stat label="Success rate" value={formatPercent(report.recoveryRate)}>
+        {report.itemsRecovered} booked, {report.itemsLost} not coming
       </Stat>
-      <Stat label="Recovery rate" value={formatPercent(report.recoveryRate)}>
-        {report.itemsRecovered} recovered · {report.itemsLost} lost
-      </Stat>
-      <Stat label="Handled without staff" value={String(report.autoResolved)}>
-        confirmed on WhatsApp · {report.messages.aiRead} replies read by AI
+      <Stat label="Done for you" value={String(report.autoResolved)}>
+        patients confirmed themselves on WhatsApp
       </Stat>
     </div>
 
@@ -72,9 +94,8 @@ const ReportBody = ({ report, currency }: { report: ReportSummary; currency: str
 
     <p className="flex items-start gap-2 px-1 text-xs text-rr-ink-faint">
       <Info size={14} className="mt-px shrink-0" />
-      A booking counts as recovered when the patient books within the attribution window (Settings) after a WhatsApp
-      message or a staff follow-up, or when an at-risk appointment is confirmed after a reminder. Bookings later
-      cancelled or missed are removed automatically.
+      A booking counts as won back when the patient books soon after your message or call, or confirms an appointment
+      after a reminder. If they cancel or don't turn up, it is taken off again by itself.
     </p>
   </>
 );
@@ -91,17 +112,17 @@ const LeakTable = ({ report, currency }: { report: ReportSummary; currency: stri
   const max = Math.max(...report.byLeak.map((leak) => leak.recoveredValue), 1);
   return (
     <Card className="xl:col-span-3">
-      <CardHeader title="By leak type" subtitle="What was found, and what came back" />
+      <CardHeader title="By type of follow-up" subtitle="Who needed following up, and who came back" />
       <div className="mt-3 overflow-x-auto">
         <table className="w-full text-left text-sm sm:min-w-[560px]">
           <thead>
             <tr className="border-b border-rr-line text-xs text-rr-ink-faint">
-              <th scope="col" className="px-5 py-2 font-medium">Leak</th>
+              <th scope="col" className="px-5 py-2 font-medium">Type</th>
               <th scope="col" className="hidden px-2 py-2 text-right font-medium sm:table-cell">Found</th>
-              <th scope="col" className="px-2 py-2 text-right font-medium">Recovered</th>
-              <th scope="col" className="hidden px-2 py-2 text-right font-medium sm:table-cell">Lost</th>
+              <th scope="col" className="px-2 py-2 text-right font-medium">Booked</th>
+              <th scope="col" className="hidden px-2 py-2 text-right font-medium sm:table-cell">Not coming</th>
               <th scope="col" className="hidden px-2 py-2 text-right font-medium sm:table-cell">Bookings</th>
-              <th scope="col" className="px-5 py-2 text-right font-medium">Revenue</th>
+              <th scope="col" className="px-5 py-2 text-right font-medium">Money</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-rr-line">
@@ -148,8 +169,8 @@ const Funnel = ({ messages }: { messages: MessageFunnel }) => {
   return (
     <Card className="xl:col-span-2">
       <CardHeader
-        title="WhatsApp funnel"
-        subtitle={`${messages.automated} of ${messages.sent} sent automatically · ${messages.received} messages received`}
+        title="WhatsApp messages"
+        subtitle={`${messages.sent} sent (${messages.automated} automatic), ${messages.received} received from patients`}
       />
       <ol className="flex flex-col gap-3 px-5 py-4">
         {steps.map((step) => {
@@ -171,7 +192,7 @@ const Funnel = ({ messages }: { messages: MessageFunnel }) => {
       </ol>
       {messages.failed > 0 && (
         <p className="border-t border-rr-line px-5 py-3 text-xs text-rr-missed-ink">
-          {messages.failed} could not be delivered. Open the WhatsApp inbox to see why.
+          {messages.failed} could not be delivered. Open Messages to see why.
         </p>
       )}
     </Card>
@@ -185,9 +206,9 @@ const BookingsTable = ({ bookings, currency }: { bookings: RecoveredBooking[]; c
   const visible = showAll ? bookings : bookings.slice(0, BOOKINGS_PREVIEW);
   return (
   <Card>
-    <CardHeader title="Recovered bookings" subtitle="Each booking and what brought it back" />
+    <CardHeader title="Bookings won back" subtitle="Each booking and what brought it back" />
     {bookings.length === 0 ? (
-      <EmptyState icon={<FileBarChart2 size={22} />} title="No recovered bookings in this period yet" />
+      <EmptyState icon={<FileBarChart2 size={22} />} title="No bookings won back in this period yet" />
     ) : (
       <ul className="mt-3 divide-y divide-rr-line">
         {visible.map((booking) => {
@@ -201,9 +222,9 @@ const BookingsTable = ({ bookings, currency }: { bookings: RecoveredBooking[]; c
               </div>
               <Pill tone={booking.rule === "saved_appointment" ? "info" : "recovered"}>{BOOKING_RULE_LABELS[booking.rule]}</Pill>
               <span className="min-w-0 basis-56 text-xs text-rr-ink-faint sm:basis-64">
-                {meta ? meta.label : "Other outreach"}
+                {meta ? meta.label : "Other"}
                 {" · "}
-                {booking.templateName ? `${booking.automated ? "Automated" : "Staff sent"} “${booking.templateName}”` : "Staff follow-up"}
+                {booking.templateName ? `${booking.automated ? "Automatic reminder" : "Message from staff"}: “${booking.templateName}”` : "Staff follow-up"}
               </span>
               <span className="rr-tabular ml-auto text-sm font-semibold">{formatMoney(booking.value, currency)}</span>
             </li>
@@ -224,15 +245,15 @@ const BookingsTable = ({ bookings, currency }: { bookings: RecoveredBooking[]; c
 
 const exportBookings = (bookings: RecoveredBooking[], period: ReportPeriod, currency: string): void => {
   const csv = toCsv(
-    ["Booked on", "Patient", "Treatment", "Appointment", "How", "Leak type", "Message", `Value (${currency})`],
+    ["Booked on", "Patient", "Treatment", "Appointment", "How", "Type", "Message", `Value (${currency})`],
     bookings.map((booking) => [
       booking.bookedAt.slice(0, 10),
       booking.patientName,
       booking.treatment,
       booking.startsAt.slice(0, 16).replace("T", " "),
       BOOKING_RULE_LABELS[booking.rule],
-      booking.leakType ? LEAK_META[booking.leakType].label : "Other outreach",
-      booking.templateName ?? "Staff follow-up",
+      booking.leakType ? LEAK_META[booking.leakType].label : "Other",
+      booking.templateName ?? "Call or visit",
       booking.value,
     ]),
   );

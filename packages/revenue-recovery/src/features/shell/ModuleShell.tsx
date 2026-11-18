@@ -1,13 +1,12 @@
-import { Construction } from "lucide-react";
-import { Card, cx } from "../../components/ui";
-import { AutomationsPage } from "../automations/AutomationsPage";
+import { cx } from "../../components/ui";
+import { useApprovals, useConversations } from "../../data/useOutreach";
+import { useWorklist } from "../../data/useWorklist";
 import { ConfirmationsPage } from "../confirmations/ConfirmationsPage";
-import { DashboardPage } from "../dashboard/DashboardPage";
 import { InboxPage } from "../inbox/InboxPage";
-import { RecallsPage } from "../recalls/RecallsPage";
 import { ReportsPage } from "../reports/ReportsPage";
 import { SettingsPage } from "../settings/SettingsPage";
-import { WorklistPage } from "../worklist/WorklistPage";
+import { TodayPage } from "../today/TodayPage";
+import { isInView } from "../worklist/worklistFilters";
 import { SECTION_IDS, SECTIONS, type SectionId } from "./sections";
 
 type ModuleShellProps = {
@@ -15,79 +14,90 @@ type ModuleShellProps = {
   onSectionChange: (section: SectionId) => void;
 };
 
-export const ModuleShell = ({ section, onSectionChange }: ModuleShellProps) => (
-  <div className="flex min-h-full flex-col">
-    <header className="border-b border-rr-line bg-rr-surface/80 px-4 pt-5 backdrop-blur sm:px-6">
-      <div className="flex flex-wrap items-end justify-between gap-2">
-        <div>
-          <h1 className="font-rr-display text-xl font-bold tracking-tight">Revenue Recovery</h1>
-          <p className="text-[13px] text-rr-ink-faint">
-            Find the bookings slipping away, win them back on WhatsApp.
-          </p>
-        </div>
-      </div>
-      <nav aria-label="Revenue recovery sections" className="-mb-px mt-4 flex gap-1 overflow-x-auto">
-        {SECTION_IDS.map((id) => {
-          const { label, icon: Icon } = SECTIONS[id];
-          const active = id === section;
-          return (
-            <button
-              key={id}
-              type="button"
-              onClick={() => onSectionChange(id)}
-              aria-current={active ? "page" : undefined}
-              className={cx(
-                "flex shrink-0 items-center gap-2 border-b-2 px-3 py-2.5 text-[13px] font-medium transition-colors",
-                active
-                  ? "border-rr-primary text-rr-primary-strong"
-                  : "border-transparent text-rr-ink-soft hover:text-rr-ink",
-              )}
-            >
-              <Icon size={15} />
-              {label}
-            </button>
-          );
-        })}
-      </nav>
-    </header>
-    <main className="flex-1 p-4 sm:p-6">
-      <SectionContent section={section} />
-    </main>
-  </div>
-);
+export const ModuleShell = ({ section, onSectionChange }: ModuleShellProps) => {
+  const badges = useBadges();
 
-const SectionContent = ({ section }: { section: SectionId }) => {
+  return (
+    <div className="flex min-h-full flex-col">
+      <header className="px-4 pt-5 sm:px-8 sm:pt-7">
+        <p className="font-rr-display text-[15px] font-bold text-rr-primary-strong">Revenue Recovery</p>
+        <nav aria-label="Sections" className="mt-3 flex gap-1.5 overflow-x-auto pb-1">
+          {SECTION_IDS.map((id) => {
+            const { label, icon: Icon } = SECTIONS[id];
+            const active = id === section;
+            const badge = badges[id];
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => onSectionChange(id)}
+                aria-current={active ? "page" : undefined}
+                className={cx(
+                  "flex min-h-10 shrink-0 items-center gap-2 rounded-full px-4 text-[15px] transition-colors",
+                  active
+                    ? "bg-rr-ink font-bold text-white"
+                    : "text-rr-ink-soft hover:bg-rr-surface hover:text-rr-ink",
+                )}
+              >
+                <Icon size={17} aria-hidden />
+                {label}
+                {badge > 0 && (
+                  <span
+                    className={cx(
+                      "grid h-5 min-w-5 place-items-center rounded-full px-1.5 text-xs font-bold",
+                      active ? "bg-rr-risk text-rr-ink" : "bg-rr-risk-soft text-rr-risk-ink",
+                    )}
+                    aria-label={`${badge} waiting`}
+                  >
+                    {badge}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </nav>
+      </header>
+      <main className="flex-1 px-4 pt-5 pb-10 sm:px-8">
+        <SectionContent section={section} onSectionChange={onSectionChange} />
+      </main>
+    </div>
+  );
+};
+
+/** How many things wait for a person on each tab. */
+const useBadges = (): Record<SectionId, number> => {
+  const worklist = useWorklist();
+  const conversations = useConversations();
+  const approvals = useApprovals();
+  const now = Date.now();
+  return {
+    today: (worklist.data ?? []).filter((item) => isInView(item, "active", now)).length,
+    appointments: 0,
+    messages:
+      (conversations.data ?? []).filter((conversation) => conversation.unhandledCount > 0).length +
+      (approvals.data?.length ?? 0),
+    results: 0,
+    settings: 0,
+  };
+};
+
+const SectionContent = ({
+  section,
+  onSectionChange,
+}: {
+  section: SectionId;
+  onSectionChange: (section: SectionId) => void;
+}) => {
   switch (section) {
-    case "dashboard":
-      return <DashboardPage />;
-    case "worklist":
-      return <WorklistPage />;
-    case "confirmations":
+    case "today":
+      return <TodayPage onOpenMessages={() => onSectionChange("messages")} />;
+    case "appointments":
       return <ConfirmationsPage />;
-    case "recalls":
-      return <RecallsPage />;
-    case "inbox":
+    case "messages":
       return <InboxPage />;
-    case "automations":
-      return <AutomationsPage />;
-    case "reports":
+    case "results":
       return <ReportsPage />;
     case "settings":
       return <SettingsPage />;
-    default:
-      return <PlannedSection section={section} />;
   }
-};
-
-const PlannedSection = ({ section }: { section: SectionId }) => {
-  const { label, plannedPhase } = SECTIONS[section];
-  return (
-    <Card className="flex flex-col items-center gap-3 px-6 py-16 text-center">
-      <span className="grid size-12 place-items-center rounded-2xl bg-rr-primary-soft text-rr-primary">
-        <Construction size={22} />
-      </span>
-      <h2 className="text-base font-semibold">{label}</h2>
-      <p className="max-w-sm text-sm text-rr-ink-soft">Arrives in Phase {plannedPhase} of the build plan.</p>
-    </Card>
-  );
 };

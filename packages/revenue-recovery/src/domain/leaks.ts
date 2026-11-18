@@ -1,10 +1,12 @@
-import { CalendarClock, CalendarX2, MessageCircleQuestion, UserRoundSearch, type LucideIcon } from "lucide-react";
-import type { LeakType } from "./types";
+import { CalendarClock, MessageCircleQuestion, PhoneCall, UserRoundSearch, type LucideIcon } from "lucide-react";
+import type { LeakType, RecoveryItemStatus } from "./types";
 
 export type Tone = "missed" | "risk" | "info" | "primary" | "recovered" | "neutral";
 
 type LeakMeta = {
+  /** Plain label a receptionist would use. */
   label: string;
+  /** What to do about it, in one short line. */
   description: string;
   icon: LucideIcon;
   tone: Tone;
@@ -12,30 +14,39 @@ type LeakMeta = {
 
 export const LEAK_META = {
   missed_enquiry: {
-    label: "Missed enquiries",
-    description: "No reply or no booking yet",
+    label: "Waiting for a reply",
+    description: "Asked about treatment, nobody answered yet",
     icon: MessageCircleQuestion,
     tone: "missed",
   },
   overdue_followup: {
-    label: "Overdue follow-ups",
-    description: "Callbacks past their due time",
-    icon: CalendarClock,
+    label: "Call back promised",
+    description: "We said we would call, and haven't yet",
+    icon: PhoneCall,
     tone: "risk",
   },
   unconfirmed_appointment: {
-    label: "Unconfirmed appointments",
-    description: "Next 72 hours, not confirmed",
-    icon: CalendarX2,
+    label: "Hasn't confirmed",
+    description: "Coming in the next 3 days, not confirmed",
+    icon: CalendarClock,
     tone: "info",
   },
   lapsed_patient: {
-    label: "Not returned",
-    description: "Planned follow-up never booked",
+    label: "Due to come back",
+    description: "Next treatment or check-up not booked",
     icon: UserRoundSearch,
     tone: "primary",
   },
 } as const satisfies Record<LeakType, LeakMeta>;
+
+/** The same words wherever a patient's status appears. */
+export const STATUS_WORDS = {
+  open: { label: "To do", tone: "neutral" },
+  in_progress: { label: "Working on it", tone: "info" },
+  recovered: { label: "Booked", tone: "recovered" },
+  lost: { label: "Not coming", tone: "missed" },
+  dismissed: { label: "Not needed", tone: "neutral" },
+} as const satisfies Record<RecoveryItemStatus, { label: string; tone: Tone }>;
 
 export const TONE_CLASSES = {
   missed: { text: "text-rr-missed", ink: "text-rr-missed-ink", soft: "bg-rr-missed-soft", bar: "bg-rr-missed" },

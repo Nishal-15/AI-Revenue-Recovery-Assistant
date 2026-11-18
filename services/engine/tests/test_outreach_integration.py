@@ -281,7 +281,7 @@ def test_unknown_number_becomes_an_enquiry_and_duplicates_are_ignored(conn):
     scan_clinic(conn, clinic.id, NOW + timedelta(hours=2))  # nobody replied within the 60-minute SLA
     leak = one(conn, "select reason from recovery.recovery_items "
                      "where clinic_id = %(c)s and leak_type = 'missed_enquiry'", c=clinic.id)
-    assert leak["reason"] == "WhatsApp enquiry, no reply for 2 h"
+    assert leak["reason"] == "WhatsApp enquiry, no reply for 2 hours"
 
 
 def test_sending_to_an_enquirer_counts_as_first_response(conn):

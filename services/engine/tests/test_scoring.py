@@ -49,9 +49,9 @@ def test_enquiry_value_falls_back_for_unknown_interest():
 
 def test_reason_texts():
     assert reasons.unanswered_enquiry_reason("whatsapp", "aligners", timedelta(hours=3, minutes=20)) == (
-        "WhatsApp enquiry about aligners, no reply for 3 h"
+        "WhatsApp enquiry about aligners, no reply for 3 hours"
     )
-    assert reasons.unanswered_enquiry_reason("phone", None, timedelta(minutes=75)) == "Phone enquiry, no reply for 1 h"
+    assert reasons.unanswered_enquiry_reason("phone", None, timedelta(minutes=75)) == "Phone enquiry, no reply for 1 hour"
     assert reasons.overdue_task_reason("callback", "Quote", timedelta(days=2, hours=1)) == "Callback overdue by 2 days: Quote"
     assert reasons.lapsed_followup_reason("recall", "6-month hygiene recall", 21) == "6-month hygiene recall overdue by 3 weeks"
     assert reasons.lapsed_followup_reason("treatment_step", "Crown", 12) == "Crown due 12 days ago, not booked"

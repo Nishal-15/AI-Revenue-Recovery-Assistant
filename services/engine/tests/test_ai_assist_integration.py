@@ -147,5 +147,5 @@ def test_emergency_enquiry_is_classified_and_prioritised(conn):
     scan_clinic(conn, clinic.id, NOW)
     leak = one(conn, "select reason, priority_score from recovery.recovery_items "
                      "where clinic_id = %(c)s and leak_type = 'missed_enquiry'", c=clinic.id)
-    assert leak["reason"] == "WhatsApp enquiry about pain / emergency, no reply for 2 h"
+    assert leak["reason"] == "WhatsApp enquiry about pain / emergency, no reply for 2 hours"
     assert leak["priority_score"] >= 80  # urgent and boosted, so it tops the worklist

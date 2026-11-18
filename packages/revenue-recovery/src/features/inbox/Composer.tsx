@@ -49,14 +49,14 @@ export const Composer = ({ conversation, templates, suggestion }: ComposerProps)
           value={effectiveMode}
           onChange={setMode}
           options={[
-            { value: "text", label: windowOpen ? "Reply" : (<><Lock size={13} /> Reply</>) },
-            { value: "template", label: "Template" },
+            { value: "text", label: windowOpen ? "Write a reply" : (<><Lock size={13} /> Write a reply</>) },
+            { value: "template", label: "Ready-made message" },
           ]}
         />
         <p className="text-xs text-rr-ink-faint">
           {windowOpen
-            ? `Free replies allowed for ${formatTimeLeft(windowEndsAt)} more`
-            : "No message from them in 24 h, so WhatsApp only allows a template"}
+            ? `You can write freely for another ${formatTimeLeft(windowEndsAt)}`
+            : "They haven't written in the last day, so WhatsApp only allows a ready-made message"}
         </p>
       </div>
 
@@ -104,7 +104,7 @@ export const Composer = ({ conversation, templates, suggestion }: ComposerProps)
         <div className="flex flex-col gap-3">
           {activeTemplates.length === 0 ? (
             <p className="text-sm text-rr-ink-soft">
-              No general templates. Appointment and treatment reminders are sent from the Worklist.
+              No general messages set up. Appointment and treatment reminders are sent from Today.
             </p>
           ) : (
             <TemplatePicker
@@ -117,7 +117,7 @@ export const Composer = ({ conversation, templates, suggestion }: ComposerProps)
           <div className="flex justify-end">
             <Button type="submit" disabled={!templateId || send.isPending}>
               <Send size={15} />
-              Send template
+              Send message
             </Button>
           </div>
         </div>

@@ -4,6 +4,7 @@ import { Button, Card, ErrorBanner, ListSkeleton } from "../../components/ui";
 import { useClinicSettings, useSaveClinicSettings } from "../../data/useAutomations";
 import type { ClinicSettings } from "../../domain/outreach";
 import { Switch } from "../../components/Switch";
+import { AutomationsPage } from "../automations/AutomationsPage";
 
 export const SettingsPage = () => {
   const settings = useClinicSettings();
@@ -15,13 +16,22 @@ export const SettingsPage = () => {
 
   // Re-mount the form when saved values change so it never shows stale input.
   return (
-    <SettingsForm
-      key={JSON.stringify(settings.data)}
-      initial={settings.data}
-      justSaved={justSaved}
-      onSaved={() => setJustSaved(true)}
-      onEdit={() => setJustSaved(false)}
-    />
+    <div className="mx-auto flex max-w-4xl flex-col gap-10">
+      <SettingsForm
+        key={JSON.stringify(settings.data)}
+        initial={settings.data}
+        justSaved={justSaved}
+        onSaved={() => setJustSaved(true)}
+        onEdit={() => setJustSaved(false)}
+      />
+      <section aria-labelledby="rr-auto-reminders" className="flex flex-col gap-4">
+        <div>
+          <h2 id="rr-auto-reminders" className="font-rr-display text-2xl font-bold">Automatic reminders</h2>
+          <p className="text-rr-ink-soft">The WhatsApp messages sent for you, and when they go out.</p>
+        </div>
+        <AutomationsPage />
+      </section>
+    </div>
   );
 };
 
@@ -64,84 +74,84 @@ const SettingsForm = ({ initial, justSaved, onSaved, onEdit }: SettingsFormProps
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-4">
-      <Section title="Messaging" subtitle="Protects patients from too many or badly timed messages.">
-        <Field label="Quiet hours start" hint="No messages from this time…">
+      <Section title="WhatsApp messages" subtitle="So patients never get too many messages, or messages at night.">
+        <Field label="No messages after" hint="Messages wait until morning.">
           {(id) => (
             <input id={id} type="time" required value={form.quietHoursStart} onChange={(e) => set("quietHoursStart", e.target.value)} className={INPUT} />
           )}
         </Field>
-        <Field label="Quiet hours end" hint="…until this time, clinic local time">
+        <Field label="Start sending again at" hint="Clinic time.">
           {(id) => (
             <input id={id} type="time" required value={form.quietHoursEnd} onChange={(e) => set("quietHoursEnd", e.target.value)} className={INPUT} />
           )}
         </Field>
-        <Field label="Automated messages per patient per week" hint="0 to 14. Staff replies are not counted.">
+        <Field label="Most automatic reminders one patient gets in a week" hint="Between 0 and 14. Your own replies don't count.">
           {(id) => (
             <input id={id} type="number" min={0} max={14} required value={form.maxMessagesPerWeek} onChange={(e) => setNumber("maxMessagesPerWeek")(e.target.value)} className={INPUT} />
           )}
         </Field>
         <div className="flex items-start justify-between gap-4 sm:col-span-2">
           <div>
-            <p className="text-sm font-medium">Staff approval for automated messages</p>
-            <p className="text-xs text-rr-ink-faint">
-              When on, reminders wait in the WhatsApp inbox until someone approves them.
+            <p className="font-medium">Check reminders before they are sent</p>
+            <p className="text-sm text-rr-ink-faint">
+              On: reminders wait under Messages until you press Send. Off: they go out by themselves.
             </p>
           </div>
           <Switch
             checked={form.requireStaffApproval}
             onToggle={() => set("requireStaffApproval", !form.requireStaffApproval)}
-            label="Staff approval for automated messages"
+            label="Check reminders before they are sent"
           />
         </div>
       </Section>
 
-      <Section title="Detection" subtitle="When something counts as slipping away.">
-        <Field label="Reply to enquiries within (minutes)" hint="After this, an unanswered enquiry is flagged.">
+      <Section title="When to add a patient to Today" subtitle="How long to wait before someone needs following up.">
+        <Field label="Unanswered message, after (minutes)" hint="A question nobody has answered for this long appears on Today.">
           {(id) => (
             <input id={id} type="number" min={1} required value={form.enquiryResponseSlaMinutes} onChange={(e) => setNumber("enquiryResponseSlaMinutes")(e.target.value)} className={INPUT} />
           )}
         </Field>
-        <Field label="Check confirmations (hours ahead)" hint="Unconfirmed appointments within this window are flagged.">
+        <Field label="Ask to confirm appointments (hours ahead)" hint="Appointments within this time that aren't confirmed appear on Today.">
           {(id) => (
             <input id={id} type="number" min={1} required value={form.unconfirmedLookaheadHours} onChange={(e) => setNumber("unconfirmedLookaheadHours")(e.target.value)} className={INPUT} />
           )}
         </Field>
-        <Field label="Grace period for planned follow-ups (days)" hint="How overdue before a patient counts as not returned.">
+        <Field label="Missed check-up or next treatment, after (days late)" hint="Patients this many days late appear on Today.">
           {(id) => (
             <input id={id} type="number" min={0} required value={form.lapsedGraceDays} onChange={(e) => setNumber("lapsedGraceDays")(e.target.value)} className={INPUT} />
           )}
         </Field>
-        <Field label="Credit bookings to outreach for (days)" hint="1 to 90. Used for recovered revenue.">
+        <Field label="Count a booking as won back within (days)" hint="If the patient books within this many days of your message or call, it counts in Results.">
           {(id) => (
             <input id={id} type="number" min={1} max={90} required value={form.attributionWindowDays} onChange={(e) => setNumber("attributionWindowDays")(e.target.value)} className={INPUT} />
           )}
         </Field>
       </Section>
 
-      <Section title="Privacy" subtitle="What leaves the clinic, and how long message text is kept.">
+      <Section title="Privacy" subtitle="What leaves the clinic, and how long messages are kept.">
         <div className="flex items-start justify-between gap-4 sm:col-span-2">
           <div>
-            <p className="text-sm font-medium">AI assistance (Google Gemini)</p>
-            <p className="text-xs text-rr-ink-faint">
-              When on, patients' WhatsApp messages and enquiries are sent to Google Gemini to label them and draft
-              replies. Phone numbers are never sent. Turn off to keep all message text inside the clinic's systems.
+            <p className="font-medium">Smart suggestions</p>
+            <p className="text-sm text-rr-ink-faint">
+              Reads patients' messages and suggests replies, using Google's AI (Gemini). Phone numbers are never shared.
+              Turn off to keep every message inside the clinic.
             </p>
           </div>
           <Switch
             checked={form.aiEnabled}
             onToggle={() => set("aiEnabled", !form.aiEnabled)}
-            label="AI assistance (Google Gemini)"
+            label="Smart suggestions"
           />
         </div>
-        <Field label="Keep message text for (days)" hint="30 to 3650. Older text and AI notes are deleted; dates stay for reports.">
+        <Field label="Delete old messages after (days)" hint="Between 30 and 3650. Results still count them.">
           {(id) => (
             <input id={id} type="number" min={30} max={3650} required value={form.messageRetentionDays} onChange={(e) => setNumber("messageRetentionDays")(e.target.value)} className={INPUT} />
           )}
         </Field>
       </Section>
 
-      <Section title="WhatsApp connection" subtitle="From Meta Business Manager → WhatsApp → API setup.">
-        <Field label="Phone number ID" hint="Leave empty until the clinic's WhatsApp Business number is connected.">
+      <Section title="WhatsApp connection" subtitle="Set once when the clinic's WhatsApp Business number is connected.">
+        <Field label="WhatsApp phone number ID" hint="Found in Meta's WhatsApp setup page. Leave empty until then.">
           {(id) => (
             <input
               id={id}
@@ -166,7 +176,7 @@ const SettingsForm = ({ initial, justSaved, onSaved, onEdit }: SettingsFormProps
         )}
         <Button type="submit" disabled={!dirty || save.isPending}>
           <Save size={15} />
-          {save.isPending ? "Saving…" : "Save settings"}
+          {save.isPending ? "Saving…" : "Save changes"}
         </Button>
       </div>
     </form>
@@ -174,15 +184,15 @@ const SettingsForm = ({ initial, justSaved, onSaved, onEdit }: SettingsFormProps
 };
 
 const INPUT =
-  "h-9 w-full rounded-lg border border-rr-line-strong bg-rr-surface px-3 text-sm outline-none focus:border-rr-primary";
+  "h-11 w-full rounded-xl border border-rr-line-strong bg-rr-surface px-3.5 outline-none focus:border-rr-primary";
 
 const Section = ({ title, subtitle, children }: { title: string; subtitle: string; children: ReactNode }) => (
   <Card>
-    <header className="border-b border-rr-line px-4 py-3.5 sm:px-5">
-      <h2 className="text-[15px] font-semibold">{title}</h2>
-      <p className="text-[13px] text-rr-ink-faint">{subtitle}</p>
+    <header className="px-5 pt-5 sm:px-6">
+      <h2 className="font-rr-display text-xl font-bold">{title}</h2>
+      <p className="text-rr-ink-soft">{subtitle}</p>
     </header>
-    <div className="grid grid-cols-1 gap-x-6 gap-y-5 px-4 py-4 sm:grid-cols-2 sm:px-5">{children}</div>
+    <div className="grid grid-cols-1 gap-x-8 gap-y-6 px-5 py-5 sm:grid-cols-2 sm:px-6">{children}</div>
   </Card>
 );
 
@@ -190,11 +200,11 @@ const Field = ({ label, hint, children }: { label: string; hint: string; childre
   const id = useId();
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-sm font-medium">
+      <label htmlFor={id} className="font-medium">
         {label}
       </label>
       {children(id)}
-      <p className="text-xs text-rr-ink-faint">{hint}</p>
+      <p className="text-sm text-rr-ink-faint">{hint}</p>
     </div>
   );
 };

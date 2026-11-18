@@ -24,13 +24,13 @@ export const ApprovalQueue = ({ items, templates }: ApprovalQueueProps) => {
             <ShieldCheck size={18} />
           </span>
           <div>
-            <h2 className="text-[15px] font-semibold">Waiting for your approval · {items.length}</h2>
-            <p className="text-[13px] text-rr-ink-faint">Automated reminders go out only after someone approves them.</p>
+            <h2 className="text-[15px] font-semibold">{items.length === 1 ? "1 reminder is" : `${items.length} reminders are`} ready to send</h2>
+            <p className="text-[13px] text-rr-ink-faint">Read them, then send. You can switch this check off in Settings.</p>
           </div>
         </div>
         <Button onClick={() => approve.mutate(items.map((item) => item.id))} disabled={approve.isPending}>
           <Check size={15} />
-          Approve all
+          Send all
         </Button>
       </header>
 
@@ -57,7 +57,7 @@ export const ApprovalQueue = ({ items, templates }: ApprovalQueueProps) => {
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => approve.mutate([item.id])} disabled={approve.isPending}>
                 <Check size={15} />
-                Approve
+                Send
               </Button>
               <Button variant="ghost" onClick={() => cancel.mutate(item.id)} disabled={cancel.isPending}>
                 <X size={15} />
