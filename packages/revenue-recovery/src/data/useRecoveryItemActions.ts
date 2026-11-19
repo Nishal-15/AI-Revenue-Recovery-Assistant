@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { RecoveryItemPatch, WorklistItem } from "../domain/types";
 import { useRecoveryContext } from "./context";
-import { demoStore } from "./demoStore";
 import { applyItemPatch, toItemUpdateRow } from "./recoveryItemPatch";
 import { useWorklistQueryKey } from "./useWorklist";
 
@@ -18,7 +17,6 @@ export const useRecoveryItemActions = () => {
   return useMutation({
     mutationKey: MUTATION_KEY,
     mutationFn: async ({ id, patch }: UpdateVariables): Promise<void> => {
-      if (!supabase) return demoStore.updateItem(id, patch);
       const { error } = await supabase
         .schema("recovery")
         .from("recovery_items")

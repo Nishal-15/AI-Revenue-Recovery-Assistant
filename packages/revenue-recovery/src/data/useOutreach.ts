@@ -13,14 +13,13 @@ import type {
 import { phoneDigits } from "../domain/outreach";
 import type { LeakType } from "../domain/types";
 import { useRecoveryContext } from "./context";
-import { demoOutreach } from "./demoOutreach";
 
 /** The inbox polls so replies show up without a reload; the engine handles webhooks in real time. */
 const INBOX_POLL_MS = 10_000;
 
 const useMode = () => {
   const { supabase, clinicId } = useRecoveryContext();
-  return { supabase, clinicId, mode: supabase ? "live" : "demo" } as const;
+  return { supabase, clinicId, mode: "live" } as const;
 };
 
 // --- raw rows at the Supabase boundary ------------------------------------------------------
@@ -125,7 +124,6 @@ export const useConversations = () => {
     queryKey: ["recovery", "conversations", clinicId, mode],
     refetchInterval: INBOX_POLL_MS,
     queryFn: async (): Promise<Conversation[]> => {
-      if (!supabase) return demoOutreach.listConversations();
       const { data, error } = await supabase
         .schema("recovery")
         .from("conversations")
@@ -147,7 +145,6 @@ export const useThread = (phone: string | null) => {
     refetchInterval: INBOX_POLL_MS,
     queryFn: async (): Promise<OutreachMessage[]> => {
       if (!phone) return [];
-      if (!supabase) return demoOutreach.listThread(phone);
       const { data, error } = await supabase
         .schema("recovery")
         .rpc("conversation_messages", { p_clinic_id: clinicId, p_phone: phone })
@@ -171,7 +168,6 @@ export const useApprovals = () => {
     queryKey: ["recovery", "approvals", clinicId, mode],
     refetchInterval: INBOX_POLL_MS,
     queryFn: async (): Promise<ApprovalItem[]> => {
-      if (!supabase) return demoOutreach.listApprovals();
       const { data, error } = await supabase
         .schema("recovery")
         .from("outreach_messages")
@@ -191,7 +187,6 @@ export const useTemplates = () => {
     queryKey: ["recovery", "templates", clinicId, mode],
     staleTime: 5 * 60_000,
     queryFn: async (): Promise<MessageTemplate[]> => {
-      if (!supabase) return demoOutreach.listTemplates();
       const { data, error } = await supabase
         .schema("recovery")
         .from("message_templates")
@@ -217,7 +212,6 @@ export const useSendMessage = () => {
   const invalidate = useInvalidateRecovery();
   return useMutation({
     mutationFn: async (draft: NewOutboundMessage): Promise<void> => {
-      if (!supabase) return demoOutreach.send(draft);
       const { data: auth } = await supabase.auth.getUser();
       const { error } = await supabase
         .schema("recovery")
@@ -245,7 +239,6 @@ export const useApproveMessages = () => {
   const invalidate = useInvalidateRecovery();
   return useMutation({
     mutationFn: async (ids: string[]): Promise<void> => {
-      if (!supabase) return demoOutreach.approve(ids);
       const { data: auth } = await supabase.auth.getUser();
       const { error } = await supabase
         .schema("recovery")
@@ -264,7 +257,6 @@ export const useCancelMessage = () => {
   const invalidate = useInvalidateRecovery();
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      if (!supabase) return demoOutreach.cancel(id);
       const { error } = await supabase
         .schema("recovery")
         .from("outreach_messages")
@@ -282,7 +274,6 @@ export const useForgetContact = () => {
   const invalidate = useInvalidateRecovery();
   return useMutation({
     mutationFn: async (phone: string): Promise<void> => {
-      if (!supabase) return demoOutreach.forget(phone);
       const { error } = await supabase.schema("recovery").rpc("forget_contact", { p_clinic_id: clinicId, p_phone: phone });
       if (error) {
         const message = error.code === "42501" ? "Only owners and managers can delete a contact's data." : error.message;
@@ -299,7 +290,6 @@ export const useMarkHandled = () => {
   return useMutation({
     mutationFn: async (ids: string[]): Promise<void> => {
       if (ids.length === 0) return;
-      if (!supabase) return demoOutreach.markHandled(ids);
       const { error } = await supabase
         .schema("recovery")
         .from("outreach_messages")

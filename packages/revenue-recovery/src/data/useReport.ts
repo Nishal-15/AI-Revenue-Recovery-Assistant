@@ -3,7 +3,6 @@ import type { BookingRule, LeakReport, RecoveredBooking, ReportPeriod, ReportSum
 import { periodRange } from "../domain/reports";
 import type { LeakType } from "../domain/types";
 import { useRecoveryContext } from "./context";
-import { buildDemoReport } from "./demoReport";
 
 // Shape returned by recovery.report_summary(); numerics may arrive as strings.
 type Num = number | string;
@@ -82,9 +81,8 @@ const toReport = (raw: RawReport): ReportSummary => ({
 export const useReport = (period: ReportPeriod) => {
   const { supabase, clinicId } = useRecoveryContext();
   return useQuery({
-    queryKey: ["recovery", "report", clinicId, supabase ? "live" : "demo", period],
+    queryKey: ["recovery", "report", clinicId, period],
     queryFn: async (): Promise<ReportSummary> => {
-      if (!supabase) return buildDemoReport(period);
       const { from, to } = periodRange(period);
       const { data, error } = await supabase
         .schema("recovery")

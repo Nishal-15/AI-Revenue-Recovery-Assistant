@@ -8,56 +8,10 @@
 @layer theme, base, components, utilities;
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/utilities.css" layer(utilities);
+@import "./tokens.css";
 
 @source "../";
 
-@theme {
-  /* Canvas: deep petrol teal behind everything (the dark glass look). */
-  --color-rr-canvas: #0f2c31;
-  --color-rr-canvas-raised: #163a40;
-  --color-rr-canvas-line: rgb(232 241 238 / 0.12);
-  --color-rr-on-canvas: #e9f2ef;
-  --color-rr-on-canvas-soft: #a8c2bd;
-
-  /* Cards: mint cream, with a slightly deeper mint for insets inside them. */
-  --color-rr-surface: #f0f5f2;
-  --color-rr-bg: #e2ece8;
-  --color-rr-line: #d3e1dc;
-  --color-rr-line-strong: #b6cbc4;
-
-  --color-rr-ink: #10343a;
-  --color-rr-ink-soft: #3f5f64;
-  --color-rr-ink-faint: #67868a;
-
-  /* Sage teal: the action colour (gauges, buttons, progress). */
-  --color-rr-primary: #23746b;
-  --color-rr-primary-strong: #185a53;
-  --color-rr-primary-soft: #d2e7e0;
-
-  /* Meaning colours: booked (sage green), needs you (sand), urgent (blush pink), information (soft blue). */
-  --color-rr-recovered: #4fa58a;
-  --color-rr-recovered-soft: #d3ebe1;
-  --color-rr-risk: #d7a44a;
-  --color-rr-risk-soft: #f3e5c8;
-  --color-rr-missed: #e48da3;
-  --color-rr-missed-soft: #f7dbe2;
-  --color-rr-info: #6c9cc0;
-  --color-rr-info-soft: #dbe8f1;
-
-  /* Readable text on the matching soft surface */
-  --color-rr-recovered-ink: #1d6a52;
-  --color-rr-risk-ink: #6f4f10;
-  --color-rr-missed-ink: #93334d;
-  --color-rr-info-ink: #2d5c80;
-
-  /* One family throughout: Manrope, light weights for big numbers, bold for names and buttons. */
-  --font-rr-display: "Manrope", ui-sans-serif, system-ui, sans-serif;
-  --font-rr-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
-
-  --radius-rr-card: 1.5rem;
-  --shadow-rr-card: 0 1px 0 rgb(255 255 255 / 0.04), 0 12px 32px -18px rgb(0 0 0 / 0.45);
-  --shadow-rr-lift: 0 24px 48px -20px rgb(0 0 0 / 0.55);
-}
 
 @layer base {
   .rr-root,

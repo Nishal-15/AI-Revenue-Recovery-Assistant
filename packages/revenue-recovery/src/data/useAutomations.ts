@@ -3,7 +3,6 @@ import type { AutomationRule, AutomationStep, ClinicSettings } from "../domain/o
 import { DEFAULT_CLINIC_SETTINGS } from "../domain/outreach";
 import type { LeakType } from "../domain/types";
 import { useRecoveryContext } from "./context";
-import { demoOutreach } from "./demoOutreach";
 
 type RawStep = { anchor?: unknown; offset_minutes?: unknown; template_id?: unknown };
 
@@ -32,9 +31,8 @@ const toRule = (raw: RawRule): AutomationRule => ({
 export const useAutomationRules = () => {
   const { supabase, clinicId } = useRecoveryContext();
   return useQuery({
-    queryKey: ["recovery", "automation-rules", clinicId, supabase ? "live" : "demo"],
+    queryKey: ["recovery", "automation-rules", clinicId],
     queryFn: async (): Promise<AutomationRule[]> => {
-      if (!supabase) return demoOutreach.listRules();
       const { data, error } = await supabase
         .schema("recovery")
         .from("automation_rules")
@@ -52,7 +50,6 @@ export const useSetRuleActive = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }): Promise<void> => {
-      if (!supabase) return demoOutreach.setRuleActive(id, isActive);
       const { error } = await supabase.schema("recovery").from("automation_rules").update({ is_active: isActive }).eq("id", id);
       if (error) {
         const message = error.code === "23505" ? "Another sequence for this leak type is already on." : error.message;
@@ -111,9 +108,8 @@ const toSettingsRow = (settings: ClinicSettings) => ({
 export const useClinicSettings = () => {
   const { supabase, clinicId } = useRecoveryContext();
   return useQuery({
-    queryKey: ["recovery", "settings", clinicId, supabase ? "live" : "demo"],
+    queryKey: ["recovery", "settings", clinicId],
     queryFn: async (): Promise<ClinicSettings> => {
-      if (!supabase) return demoOutreach.getSettings();
       const { data, error } = await supabase
         .schema("recovery")
         .from("clinic_settings")
@@ -133,7 +129,6 @@ export const useSaveClinicSettings = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (settings: ClinicSettings): Promise<void> => {
-      if (!supabase) return demoOutreach.saveSettings(settings);
       const { error } = await supabase
         .schema("recovery")
         .from("clinic_settings")

@@ -7,11 +7,15 @@
     "jsx": "react-jsx",
     "strict": true,
     "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
     "types": ["vite/client"],
     "noEmit": true,
-    "paths": { "@dental-os/revenue-recovery": ["../../packages/revenue-recovery/src/index.ts"] }
+    "paths": {
+      "@dental-os/revenue-recovery/animation": ["../../packages/revenue-recovery/src/components/three/RecoveryFlow.tsx"],
+      "@dental-os/revenue-recovery": ["../../packages/revenue-recovery/src/index.ts"]
+    }
   },
   "include": ["src"]
 }

@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { UpcomingAppointment } from "../domain/types";
 import { useRecoveryContext } from "./context";
-import { demoStore } from "./demoStore";
 
 /** How far ahead the confirmations list looks; matches the unconfirmed_appointment leak window. */
 export const CONFIRMATION_WINDOW_HOURS = 72;
@@ -34,14 +33,9 @@ const toAppointment = (raw: RawAppointment): UpcomingAppointment => {
   };
 };
 
-const isInWindow = (appointment: UpcomingAppointment, from: number, to: number): boolean => {
-  const startsAt = new Date(appointment.startsAt).getTime();
-  return startsAt >= from && startsAt < to;
-};
-
 const useConfirmationsQueryKey = () => {
-  const { supabase, clinicId } = useRecoveryContext();
-  return ["recovery", "confirmations", clinicId, supabase ? "live" : "demo"] as const;
+  const { clinicId } = useRecoveryContext();
+  return ["recovery", "confirmations", clinicId] as const;
 };
 
 export const useConfirmations = () => {
@@ -53,13 +47,6 @@ export const useConfirmations = () => {
     queryFn: async (): Promise<UpcomingAppointment[]> => {
       const from = Date.now();
       const to = from + CONFIRMATION_WINDOW_HOURS * 3_600_000;
-
-      if (!supabase) {
-        const appointments = await demoStore.listAppointments();
-        return appointments
-          .filter((appointment) => isInWindow(appointment, from, to))
-          .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
-      }
 
       const { data, error } = await supabase
         .schema("recovery")
@@ -83,7 +70,6 @@ export const useConfirmAppointment = () => {
 
   return useMutation({
     mutationFn: async (id: string): Promise<void> => {
-      if (!supabase) return demoStore.confirmAppointment(id);
       const { error } = await supabase
         .schema("recovery")
         .from("appointments")

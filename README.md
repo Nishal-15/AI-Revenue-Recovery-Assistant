@@ -12,14 +12,14 @@ Built as a **section that plugs into the Dental OS**, sharing its Supabase proje
 | Data | Supabase: Postgres, Auth, Row Level Security, RPC |
 | Engine | Python, FastAPI, psycopg |
 | AI | Google Gemini (`gemini-3.5-flash-lite`) through the `google-genai` SDK |
-| Hosting | Cloudflare Workers + Containers (engine), Cloudflare Pages (demo), Supabase (database) |
+| Hosting | Cloudflare Workers + Containers (engine), Cloudflare Pages (website), Supabase (database) |
 | Messaging | WhatsApp Cloud API (Meta) |
 
 ```
 packages/revenue-recovery   <RevenueRecovery /> React component, Three.js visual, styles
-apps/playground             Stand-in Dental OS layout for local development (demo data by default)
+apps/web                    Website: landing page (/), sign in (/login), the clinic screens (/app)
 supabase/migrations         "recovery" schema, RLS policies, dashboard function
-supabase/seed.sql           Demo clinic with patients, appointments, follow-ups and history
+supabase/seed.sql           Sample clinic for local tests only (never load it into your real project)
 services/engine             Python FastAPI: detection, WhatsApp, Gemini, attribution
 ```
 
@@ -27,7 +27,7 @@ services/engine             Python FastAPI: detection, WhatsApp, Gemini, attribu
 
 ```bash
 npm install
-npm run dev                      # playground on http://localhost:5173 with demo data
+npm run dev                      # website on http://localhost:5173 (needs apps/web/.env, see below)
 
 cd services/engine
 python -m venv .venv
@@ -53,7 +53,17 @@ cd services/engine               # terminal 2
 TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54329/postgres .venv/Scripts/python -m pytest
 ```
 
-To show real data in the playground, copy `apps/playground/.env.example` to `.env` and fill in the Supabase URL and anon key.
+### Website and sign-in
+
+Copy `apps/web/.env.example` to `apps/web/.env` and fill in `VITE_SUPABASE_URL` and the publishable key
+(Supabase: Project Settings -> API Keys). There is no demo data: everything shown is your clinic's real data.
+
+1. Supabase -> Project Settings -> Data API -> Exposed schemas: add `recovery`.
+2. Supabase -> Authentication -> URL Configuration: Site URL = your website address; add
+   `http://localhost:5173/**` and `https://<your-site>.pages.dev/**` to Redirect URLs (for email sign-in links).
+3. Supabase -> Authentication -> Users -> Add user -> Create new user (tick Auto Confirm User).
+4. Link that login to the clinic: `cd services/engine && .venv/Scripts/python -m scripts.add_staff`
+   (`--list` shows who can sign in).
 
 ## Database
 
@@ -249,8 +259,10 @@ running** (wrangler builds the image), and a Supabase project.
    `https://revenue-recovery-engine.<your-subdomain>.workers.dev/health`; it should show `"ai": "on"`.
    The first deploy takes a few minutes before the container answers.
 4. **WhatsApp webhook:** in Meta, set the callback URL to `…workers.dev/webhooks/whatsapp` with your verify token.
-5. **Demo site:** `npm run deploy:demo` publishes the playground to `https://revenue-recovery-demo.pages.dev`
-   (demo data, no login). The real screens live inside the Dental OS, which can also be hosted on Pages.
+5. **Website (Cloudflare Pages, from GitHub):** Workers & Pages -> Create -> Pages -> Connect to Git, pick this repo.
+   Build command `npm run build -w @dental-os/web`, output directory `apps/web/dist`, and add the environment
+   variables `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`. `public/_redirects` makes /login and /app work on refresh.
+   (`npm run deploy:web` does the same from your computer with wrangler.)
 
 Logs: `npm run tail --prefix deploy/cloudflare/engine`.
 

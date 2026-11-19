@@ -6,11 +6,11 @@
     "apps/*"
   ],
   "scripts": {
-    "dev": "npm run dev -w @dental-os/playground",
+    "dev": "npm run dev -w @dental-os/web",
     "build": "npm run build -w @dental-os/revenue-recovery",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "db:test": "node tools/test-db.mjs",
-    "deploy:demo": "npm run build -w @dental-os/playground && npx --prefix deploy/cloudflare/engine wrangler pages deploy apps/playground/dist --project-name revenue-recovery-demo",
+    "deploy:web": "npm run build -w @dental-os/web && npx --prefix deploy/cloudflare/engine wrangler pages deploy apps/web/dist --project-name revenue-recovery",
     "deploy:engine": "npm run deploy --prefix deploy/cloudflare/engine",
     "db:setup-sql": "node tools/build-setup-sql.mjs"
   },

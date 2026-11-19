@@ -10,3 +10,4 @@ __pycache__/
 supabase/.temp/
 supabase/setup_all_in_one.sql
 supabase/setup_update.sql
+apps/playground/

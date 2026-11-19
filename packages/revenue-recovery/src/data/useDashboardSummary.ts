@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { LEAK_TYPES, type DashboardSummary, type LeakType, type PriorityItem } from "../domain/types";
 import { useRecoveryContext } from "./context";
-import { buildDemoSummary } from "./demoSummary";
 
 // Shape returned by the recovery.dashboard_summary() Postgres function.
 type RawSummary = {
@@ -58,9 +57,8 @@ export const useDashboardSummary = () => {
   const { supabase, clinicId, currency } = useRecoveryContext();
 
   return useQuery({
-    queryKey: ["recovery", "dashboard-summary", clinicId, supabase ? "live" : "demo"],
+    queryKey: ["recovery", "dashboard-summary", clinicId],
     queryFn: async (): Promise<DashboardSummary> => {
-      if (!supabase) return buildDemoSummary(currency);
       const { data, error } = await supabase
         .schema("recovery")
         .rpc("dashboard_summary", { p_clinic_id: clinicId });

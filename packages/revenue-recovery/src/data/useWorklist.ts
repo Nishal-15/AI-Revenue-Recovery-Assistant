@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import type { LeakType, RecoveryItemStatus, WorklistItem } from "../domain/types";
 import { useRecoveryContext } from "./context";
-import { demoStore } from "./demoStore";
 
 /** Resolved items stay visible in the "Resolved" view for this long. */
 export const RESOLVED_LOOKBACK_DAYS = 30;
@@ -40,8 +39,8 @@ const toWorklistItem = (raw: RawRecoveryItem): WorklistItem => ({
 });
 
 export const useWorklistQueryKey = () => {
-  const { supabase, clinicId } = useRecoveryContext();
-  return ["recovery", "worklist", clinicId, supabase ? "live" : "demo"] as const;
+  const { clinicId } = useRecoveryContext();
+  return ["recovery", "worklist", clinicId] as const;
 };
 
 /** Every open item plus anything resolved in the last 30 days; views filter client-side. */
@@ -52,7 +51,6 @@ export const useWorklist = () => {
   return useQuery({
     queryKey,
     queryFn: async (): Promise<WorklistItem[]> => {
-      if (!supabase) return demoStore.listItems();
       const resolvedSince = new Date(Date.now() - RESOLVED_LOOKBACK_DAYS * 86_400_000).toISOString();
       const { data, error } = await supabase
         .schema("recovery")

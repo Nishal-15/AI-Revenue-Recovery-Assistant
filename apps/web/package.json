@@ -1,5 +1,5 @@
 {
-  "name": "@dental-os/playground",
+  "name": "@dental-os/web",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.0",
+    "lucide-react": "^1.76.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1"
   },

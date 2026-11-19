@@ -4,8 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 type RecoveryContextValue = {
   clinicId: string;
   currency: string;
-  /** Null runs the module on demo data (playground, design reviews). */
-  supabase: SupabaseClient | null;
+  supabase: SupabaseClient;
 };
 
 const RecoveryContext = createContext<RecoveryContextValue | null>(null);

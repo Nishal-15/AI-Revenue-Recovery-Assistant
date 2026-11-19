@@ -6,8 +6,8 @@ import { ModuleShell } from "./features/shell/ModuleShell";
 import type { SectionId } from "./features/shell/sections";
 
 export type RevenueRecoveryProps = {
-  /** The dental OS's existing Supabase client (same project, same logged-in user). Omit for demo data. */
-  supabase?: SupabaseClient;
+  /** The app's Supabase client, with the staff member signed in. Row Level Security limits it to their clinic. */
+  supabase: SupabaseClient;
   clinicId: string;
   /** ISO 4217 code used for every money figure. */
   currency?: string;
@@ -30,7 +30,7 @@ export const RevenueRecovery = ({
   const section = controlledSection ?? localSection;
 
   const contextValue = useMemo(
-    () => ({ supabase: supabase ?? null, clinicId, currency }),
+    () => ({ supabase, clinicId, currency }),
     [supabase, clinicId, currency],
   );
 
