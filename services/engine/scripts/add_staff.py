@@ -79,6 +79,9 @@ def main() -> int:
             clinic = clinics[int(choice) - 1] if choice.isdigit() and 0 < int(choice) <= len(clinics) else clinics[0]
 
         email = ask("Email they sign in with").lower()
+        if "@" not in email or "." not in email.split("@")[-1]:
+            print(f"\n\"{email}\" isn't an email address. Use the full email, for example name@gmail.com.")
+            return 1
         user = conn.execute("select id from auth.users where lower(email) = %s", (email,)).fetchone()
         if not user:
             print("\nNo login with that email yet. Create it first in Supabase:")
