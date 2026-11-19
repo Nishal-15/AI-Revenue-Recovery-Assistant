@@ -111,7 +111,8 @@ const PATIENT_COLUMNS =
   "planned_followups(id, kind, procedure, due_on, estimated_value, completed_at, booked_appointment_id)";
 
 const explain = (error: PostgrestError, action: string): Error => {
-  if (error.code === "42501") return new Error(`You don't have permission to ${action}.`);
+  if (error.code === "42501")
+    return new Error(error.message.startsWith("This number") ? error.message : `You don't have permission to ${action}.`);
   if (error.code === "23514") return new Error(`Could not ${action}: please check the dates and amounts.`);
   return new Error(`Could not ${action}: ${error.message}`);
 };
@@ -171,6 +172,22 @@ export const useAddPatient = () =>
     const phone = input.phone.trim() ? normalizePhone(input.phone) : null;
     if (input.phone.trim() && !phone) throw new Error("That phone number doesn't look complete. Include the country code, e.g. +91.");
     const db = supabase.schema("recovery");
+
+    // A patient's own STOP wins over the tick box; say so before anything is saved.
+    if (phone && input.whatsappConsent) {
+      const stopped = await db
+        .from("consents")
+        .select("source")
+        .eq("clinic_id", clinicId)
+        .eq("contact_phone", phone)
+        .eq("status", "opted_out")
+        .in("source", ["whatsapp_reply_stop", "erasure_request"])
+        .limit(1);
+      if (stopped.data && stopped.data.length > 0)
+        throw new Error(
+          "This number asked not to get WhatsApp messages. Untick the WhatsApp box to add the patient; only they can turn messages back on, by replying START.",
+        );
+    }
 
     const { data, error } = await db
       .from("patients")

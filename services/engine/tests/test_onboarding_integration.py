@@ -111,3 +111,73 @@ def test_anyone_can_rename_themselves(conn):
     with as_user(conn, owner):
         run(conn, "select recovery.set_my_name('Dr Anjali Rao')")
     assert one(conn, "select full_name from recovery.clinic_staff where clinic_id = %(c)s", c=clinic_id)["full_name"] == "Dr Anjali Rao"
+
+
+# --- a patient's STOP can only be undone by the patient -------------------------------------
+
+def _stop_from_patient(conn, clinic_id: UUID, phone: str = "+919876500099") -> str:
+    run(conn, "insert into recovery.consents (clinic_id, contact_phone, channel, status, source) "
+              "values (%(c)s, %(p)s, 'whatsapp', 'opted_out', 'whatsapp_reply_stop')", c=clinic_id, p=phone)
+    return phone
+
+
+def test_staff_cannot_overwrite_a_patients_stop(conn):
+    owner = new_user(conn)
+    clinic_id = create_clinic(conn, owner)
+    phone = _stop_from_patient(conn, clinic_id)
+    with pytest.raises(Denied, match="Only the patient"), as_user(conn, owner):
+        run(conn, "insert into recovery.consents (clinic_id, contact_phone, channel, status, source) "
+                  "values (%(c)s, %(p)s, 'whatsapp', 'opted_in', 'added_by_staff') "
+                  "on conflict (clinic_id, contact_phone, channel) do update set status = excluded.status",
+            c=clinic_id, p=phone)
+
+
+def test_staff_cannot_delete_a_patients_stop(conn):
+    owner = new_user(conn)
+    clinic_id = create_clinic(conn, owner)
+    phone = _stop_from_patient(conn, clinic_id)
+    with pytest.raises(Denied), as_user(conn, owner):
+        run(conn, "delete from recovery.consents where clinic_id = %(c)s and contact_phone = %(p)s", c=clinic_id, p=phone)
+
+
+def test_staff_can_change_their_own_no_to_yes(conn):
+    owner = new_user(conn)
+    clinic_id = create_clinic(conn, owner)
+    run(conn, "insert into recovery.consents (clinic_id, contact_phone, channel, status, source) "
+              "values (%(c)s, '+919876500098', 'whatsapp', 'opted_out', 'added_by_staff')", c=clinic_id)
+    with as_user(conn, owner):
+        run(conn, "update recovery.consents set status = 'opted_in' where clinic_id = %(c)s", c=clinic_id)
+    assert one(conn, "select status::text as s from recovery.consents where clinic_id = %(c)s", c=clinic_id)["s"] == "opted_in"
+
+
+def test_patient_can_opt_back_in_through_the_engine(conn):
+    owner = new_user(conn)
+    clinic_id = create_clinic(conn, owner)
+    phone = _stop_from_patient(conn, clinic_id)
+    run(conn, "update recovery.consents set status = 'opted_in', source = 'whatsapp_reply_start' "
+              "where clinic_id = %(c)s and contact_phone = %(p)s", c=clinic_id, p=phone)
+    assert one(conn, "select status::text as s from recovery.consents where clinic_id = %(c)s", c=clinic_id)["s"] == "opted_in"
+
+
+def test_erasing_a_contact_who_said_stop_still_works(conn):
+    owner = new_user(conn)
+    clinic_id = create_clinic(conn, owner)
+    phone = _stop_from_patient(conn, clinic_id)
+    with as_user(conn, owner):
+        run(conn, "select recovery.forget_contact(%(c)s, %(p)s)", c=clinic_id, p=phone)
+    row = one(conn, "select status::text as s, source from recovery.consents where clinic_id = %(c)s", c=clinic_id)
+    assert row == {"s": "opted_out", "source": "erasure_request"}
+
+
+def test_saving_not_agreed_keeps_the_patients_stop_label(conn):
+    owner = new_user(conn)
+    clinic_id = create_clinic(conn, owner)
+    phone = _stop_from_patient(conn, clinic_id)
+    with as_user(conn, owner):
+        run(conn, "insert into recovery.consents (clinic_id, contact_phone, channel, status, source) "
+                  "values (%(c)s, %(p)s, 'whatsapp', 'opted_out', 'added_by_staff') "
+                  "on conflict (clinic_id, contact_phone, channel) do update set status = excluded.status, source = excluded.source",
+            c=clinic_id, p=phone)
+    assert one(conn, "select source from recovery.consents where clinic_id = %(c)s", c=clinic_id)["source"] == "whatsapp_reply_stop"
+    with pytest.raises(Denied), as_user(conn, owner):
+        run(conn, "update recovery.consents set status = 'opted_in' where clinic_id = %(c)s", c=clinic_id)

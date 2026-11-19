@@ -76,6 +76,14 @@ export const useMembership = (userId: string | undefined): [MembershipState, () 
 /** Supabase's wording is technical; people see plain sentences instead. */
 export const friendlyAuthError = (message: string): string => {
   const lower = message.toLowerCase();
+  if (lower.includes("invalid api key") || lower.includes("no api key") || lower.includes("unregistered api key"))
+    return "Supabase didn't accept the key in apps/web/.env. Copy the Publishable key again from Project Settings → API Keys, save, and restart npm run dev.";
+  if (lower.includes("signups not allowed for this instance") || lower.includes("signup is disabled") || lower.includes("signups are disabled"))
+    return "New sign-ups are switched off in Supabase. Turn on Authentication → Sign In / Providers → Email → Allow new users to sign up.";
+  if (lower.includes("email logins are disabled") || lower.includes("email provider is disabled"))
+    return "Email sign-in is switched off in Supabase. Turn on Authentication → Sign In / Providers → Email.";
+  if (lower.includes("error sending") || lower.includes("sending confirmation") || lower.includes("sending magic link") || lower.includes("sending recovery"))
+    return "Supabase couldn't send the email. Without your own email sender it only sends a few emails an hour, and only to members of your Supabase team. Set up SMTP under Authentication → Emails.";
   if (lower.includes("invalid login")) return "That email and password don't match. Check them and try again.";
   if (lower.includes("email not confirmed")) return "Please confirm your email first. Open the link we sent you.";
   if (lower.includes("already registered") || lower.includes("already been registered"))

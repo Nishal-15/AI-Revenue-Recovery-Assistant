@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { Check, Sparkles } from "lucide-react";
 import { Logo } from "./Logo";
 import { Link } from "../lib/router";
+import { connectionProblem, type ConnectionProblem } from "../lib/supabase";
 import { BRAND } from "../lib/brand";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -112,9 +113,49 @@ export const Notice = ({ tone, children }: { tone: "error" | "success" | "info";
   </p>
 );
 
-export const NotConfigured = () => (
-  <Notice tone="info">
-    Sign-in isn&apos;t connected yet. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to apps/web/.env, then restart the
-    website.
-  </Notice>
-);
+const SETUP_HELP: Record<Exclude<ConnectionProblem, null>, { title: string; steps: string[] }> = {
+  "missing-url": {
+    title: "The website doesn't know your Supabase project yet.",
+    steps: [
+      "Open supabase.com, then your project, then Project Settings -> API Keys (or the green Connect button).",
+      "Copy the Project URL (https://....supabase.co).",
+      "Paste it after VITE_SUPABASE_URL= in apps/web/.env and save.",
+      "Stop the website (Ctrl+C in its terminal) and run npm run dev again.",
+    ],
+  },
+  "bad-url": {
+    title: "The project address in apps/web/.env doesn't look right.",
+    steps: ["It should look like https://abcdefghijklmnopqrst.supabase.co with nothing after it.", "Fix it, save, then restart npm run dev."],
+  },
+  "missing-key": {
+    title: "One step left: paste your publishable key.",
+    steps: [
+      "Open supabase.com, then your project, then Project Settings -> API Keys.",
+      "Copy the Publishable key. It starts with sb_publishable_ (an older project may show it as the anon public key).",
+      "Paste it after VITE_SUPABASE_ANON_KEY= in apps/web/.env and save.",
+      "Stop the website (Ctrl+C in its terminal) and run npm run dev again.",
+    ],
+  },
+  "secret-key": {
+    title: "That's the secret key. Never put it in the website.",
+    steps: [
+      "The secret (service role) key skips every privacy rule, and anyone could read it from the website.",
+      "Replace it in apps/web/.env with the Publishable key (sb_publishable_...) and restart npm run dev.",
+      "If this file was ever shared or deployed, create a new secret key in Supabase so the old one stops working.",
+    ],
+  },
+};
+
+export const NotConfigured = () => {
+  const help = SETUP_HELP[connectionProblem ?? "missing-key"];
+  return (
+    <div role="status" className="rounded-2xl bg-rr-risk-soft p-5 text-rr-risk-ink">
+      <p className="font-semibold">{help.title}</p>
+      <ol className="mt-3 flex list-decimal flex-col gap-1.5 pl-5">
+        {help.steps.map((step) => (
+          <li key={step}>{step}</li>
+        ))}
+      </ol>
+    </div>
+  );
+};
