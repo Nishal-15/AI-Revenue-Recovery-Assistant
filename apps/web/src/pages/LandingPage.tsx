@@ -29,6 +29,7 @@ export const LandingPage = () => (
       <SmartSuggestions />
       <ResultsBand />
       <Safety />
+      <Faq />
       <FinalCall />
     </main>
     <Footer />
@@ -47,8 +48,14 @@ const Header = () => (
       <a href="#safety" className="hidden rounded-full px-4 py-2 text-rr-on-canvas-soft transition-colors hover:text-rr-on-canvas sm:block">
         Privacy
       </a>
-      <Link href="/login" className="rounded-full bg-rr-surface px-5 py-2.5 font-semibold text-rr-ink transition-colors hover:bg-white">
+      <a href="#faq" className="hidden rounded-full px-4 py-2 text-rr-on-canvas-soft transition-colors hover:text-rr-on-canvas md:block">
+        Questions
+      </a>
+      <Link href="/login" className="rounded-full px-4 py-2 text-rr-on-canvas-soft transition-colors hover:text-rr-on-canvas">
         Sign in
+      </Link>
+      <Link href="/signup" className="rounded-full bg-rr-surface px-5 py-2.5 font-semibold text-rr-ink transition-colors hover:bg-white">
+        Get started
       </Link>
     </nav>
   </header>
@@ -69,10 +76,10 @@ const Hero = () => (
       </p>
       <div className="mt-9 flex flex-wrap gap-3">
         <Link
-          href="/login"
+          href="/signup"
           className="inline-flex h-13 items-center gap-2 rounded-full bg-rr-surface px-7 text-lg font-semibold text-rr-ink transition-colors hover:bg-white"
         >
-          Sign in to your clinic <ArrowRight size={19} aria-hidden />
+          Get started <ArrowRight size={19} aria-hidden />
         </Link>
         <a
           href="#how"
@@ -323,16 +330,72 @@ const Safety = () => (
   </section>
 );
 
+const FAQS = [
+  {
+    q: "Do we need to change how our front desk works?",
+    a: "No. Add a patient and their next appointment in a few seconds, the way you would in a diary. Revenue Recovery watches in the background and only asks for you when a patient needs a person.",
+  },
+  {
+    q: "Which WhatsApp number do the messages come from?",
+    a: "Your clinic's own WhatsApp Business number, connected through Meta's official WhatsApp Business Platform. Patients see your clinic name and can reply like any chat.",
+  },
+  {
+    q: "Will patients get too many messages?",
+    a: "No. Nothing is sent at night, each patient gets at most three automatic reminders a week, and anyone who replies STOP is never messaged again. You can also check every reminder before it goes.",
+  },
+  {
+    q: "Does the AI talk to patients on its own?",
+    a: "No. It reads replies and drafts an answer for your team. Simple taps like Confirm are handled automatically; anything else waits for a person. You can switch smart suggestions off.",
+  },
+  {
+    q: "Can my whole team use it?",
+    a: "Yes. The owner adds the front desk, dentists and managers. Everyone signs in with their own email, and each clinic only ever sees its own patients.",
+  },
+  {
+    q: "How do we know it's working?",
+    a: "Results shows every booking that came after a reminder or call, what it was worth, and which reminders work best for your clinic.",
+  },
+] as const;
+
+const Faq = () => (
+  <section id="faq" aria-labelledby="faq-title" className="mx-auto grid max-w-6xl scroll-mt-8 gap-10 px-5 py-20 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
+    <div>
+      <h2 id="faq-title" className="text-4xl leading-tight font-light tracking-tight text-balance sm:text-5xl">
+        Questions clinics ask
+      </h2>
+      <p className="mt-4 text-lg text-rr-on-canvas-soft">Short answers, no jargon.</p>
+    </div>
+    <div className="flex flex-col gap-3">
+      {FAQS.map(({ q, a }) => (
+        <details key={q} className="group rounded-3xl border border-rr-canvas-line bg-white/[0.04] px-6 py-5 open:bg-white/[0.07]">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-lg font-semibold [&::-webkit-details-marker]:hidden">
+            {q}
+            <span className="grid size-8 shrink-0 place-items-center rounded-full border border-rr-canvas-line text-xl font-light transition-transform group-open:rotate-45" aria-hidden>
+              +
+            </span>
+          </summary>
+          <p className="mt-3 text-rr-on-canvas-soft">{a}</p>
+        </details>
+      ))}
+    </div>
+  </section>
+);
+
 const FinalCall = () => (
   <section className="mx-auto max-w-6xl px-5 pt-10 pb-24">
     <div className="flex flex-col items-start gap-6 rounded-rr-card bg-rr-surface p-8 text-rr-ink sm:p-12 lg:flex-row lg:items-center lg:justify-between">
       <div>
         <h2 className="text-3xl font-light tracking-tight sm:text-4xl">Start with today's list.</h2>
-        <p className="mt-2 max-w-lg text-lg text-rr-ink-soft">Sign in and see which patients need you right now.</p>
+        <p className="mt-2 max-w-lg text-lg text-rr-ink-soft">Set up your clinic in two minutes and see which patients need you right now.</p>
       </div>
-      <Link href="/login" className="inline-flex h-13 items-center gap-2 rounded-full bg-rr-primary px-7 text-lg font-semibold text-white transition-colors hover:bg-rr-primary-strong">
-        Sign in <ArrowRight size={19} aria-hidden />
-      </Link>
+      <div className="flex flex-wrap gap-3">
+        <Link href="/signup" className="inline-flex h-13 items-center gap-2 rounded-full bg-rr-primary px-7 text-lg font-semibold text-white transition-colors hover:bg-rr-primary-strong">
+          Create your account <ArrowRight size={19} aria-hidden />
+        </Link>
+        <Link href="/login" className="inline-flex h-13 items-center rounded-full border border-rr-line-strong px-7 text-lg font-semibold transition-colors hover:bg-rr-bg">
+          Sign in
+        </Link>
+      </div>
     </div>
   </section>
 );
@@ -341,6 +404,11 @@ const Footer = () => (
   <footer className="border-t border-rr-canvas-line">
     <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-8 text-sm text-rr-on-canvas-soft">
       <Logo />
+      <nav aria-label="Footer" className="flex flex-wrap gap-x-6 gap-y-2">
+        <Link href="/privacy" className="hover:text-rr-on-canvas">Privacy</Link>
+        <Link href="/terms" className="hover:text-rr-on-canvas">Terms</Link>
+        <Link href="/login" className="hover:text-rr-on-canvas">Sign in</Link>
+      </nav>
       <p>© {new Date().getFullYear()} Revenue Recovery. Made for dental clinics.</p>
     </div>
   </footer>

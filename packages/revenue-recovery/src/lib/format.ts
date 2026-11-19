@@ -71,3 +71,9 @@ export const formatOverdue = (days: number): string => {
 
 export const pluralize = (count: number, singular: string, plural = `${singular}s`): string =>
   `${count} ${count === 1 ? singular : plural}`;
+
+/** "+919876543210" -> "+91 98765 43210"; other numbers are left as stored. */
+export const formatPhone = (phone: string): string => {
+  const match = /^\+91(\d{5})(\d{5})$/.exec(phone);
+  return match ? `+91 ${match[1]} ${match[2]}` : phone;
+};

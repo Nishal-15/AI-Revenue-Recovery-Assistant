@@ -1,29 +1,18 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { ArrowLeft, Mail } from "lucide-react";
-import { Logo } from "../components/Logo";
+import { Eye, EyeOff, Mail } from "lucide-react";
+import { AUTH_INPUT, AuthField, AuthLayout, NotConfigured, Notice, PRIMARY_BUTTON, SECONDARY_BUTTON } from "../components/AuthLayout";
 import { Link, navigate } from "../lib/router";
+import { friendlyAuthError } from "../lib/session";
 import { supabase } from "../lib/supabase";
 
 type Status = { kind: "idle" } | { kind: "busy" } | { kind: "error"; text: string } | { kind: "sent"; email: string };
 
-/** Supabase's wording is technical; staff see plain sentences instead. */
-const friendlyError = (message: string): string => {
-  const lower = message.toLowerCase();
-  if (lower.includes("invalid login")) return "That email and password don't match. Check them and try again.";
-  if (lower.includes("email not confirmed")) return "This email hasn't been confirmed yet. Open the confirmation email first.";
-  if (lower.includes("signups not allowed") || lower.includes("user not found"))
-    return "There is no account for this email. Ask your clinic owner to add you.";
-  if (lower.includes("rate limit")) return "Too many tries. Wait a minute and try again.";
-  if (lower.includes("fetch")) return "Couldn't reach the server. Check the internet connection.";
-  return message;
-};
-
 export const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [status, setStatus] = useState<Status>({ kind: "idle" });
 
-  // Already signed in? Go straight to the clinic.
   useEffect(() => {
     supabase?.auth.getSession().then(({ data }) => {
       if (data.session) navigate("/app");
@@ -35,7 +24,7 @@ export const LoginPage = () => {
     if (!supabase) return;
     setStatus({ kind: "busy" });
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-    if (error) return setStatus({ kind: "error", text: friendlyError(error.message) });
+    if (error) return setStatus({ kind: "error", text: friendlyAuthError(error.message) });
     navigate("/app");
   };
 
@@ -47,95 +36,85 @@ export const LoginPage = () => {
       email: email.trim(),
       options: { shouldCreateUser: false, emailRedirectTo: `${window.location.origin}/app` },
     });
-    if (error) return setStatus({ kind: "error", text: friendlyError(error.message) });
+    if (error) return setStatus({ kind: "error", text: friendlyAuthError(error.message) });
     setStatus({ kind: "sent", email: email.trim() });
   };
 
   const busy = status.kind === "busy";
 
   return (
-    <div className="flex min-h-screen flex-col bg-[radial-gradient(60rem_40rem_at_80%_-10%,rgb(79_165_138/0.22),transparent_60%)]">
-      <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-5 py-6">
-        <Link href="/" aria-label="Revenue Recovery home">
-          <Logo />
-        </Link>
-        <Link href="/" className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-rr-on-canvas-soft hover:text-rr-on-canvas">
-          <ArrowLeft size={17} aria-hidden /> Back
-        </Link>
-      </header>
-
-      <main className="grid flex-1 place-items-center px-5 pb-16">
-        <div className="w-full max-w-md rounded-rr-card bg-rr-surface p-7 text-rr-ink shadow-[0_40px_80px_-30px_rgb(0_0_0/0.6)] sm:p-9">
-          <h1 className="text-3xl font-light tracking-tight">Welcome back</h1>
-          <p className="mt-1.5 text-rr-ink-soft">Sign in to see which patients need you today.</p>
-
-          {!supabase ? (
-            <p role="alert" className="mt-6 rounded-2xl bg-rr-risk-soft p-4 text-rr-risk-ink">
-              Sign-in isn&apos;t set up yet. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to apps/web/.env, then restart.
-            </p>
-          ) : status.kind === "sent" ? (
-            <div role="status" className="mt-6 rounded-2xl bg-rr-recovered-soft p-5">
-              <p className="flex items-center gap-2 font-semibold">
-                <Mail size={18} aria-hidden /> Check your email
-              </p>
-              <p className="mt-1.5 text-rr-ink-soft">
-                We sent a sign-in link to {status.email}. Open it on this device to continue.
-              </p>
-              <button type="button" className="mt-3 font-semibold text-rr-primary-strong underline" onClick={() => setStatus({ kind: "idle" })}>
-                Use a password instead
-              </button>
-            </div>
-          ) : (
-            <form className="mt-7 flex flex-col gap-4" onSubmit={signIn}>
-              <label className="flex flex-col gap-1.5">
-                <span className="font-semibold">Email</span>
-                <input
-                  type="email"
-                  required
-                  autoComplete="email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  className="h-12 rounded-2xl border border-rr-line-strong bg-white px-4 outline-none focus:border-rr-primary"
-                />
-              </label>
-              <label className="flex flex-col gap-1.5">
-                <span className="font-semibold">Password</span>
-                <input
-                  type="password"
-                  required
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  className="h-12 rounded-2xl border border-rr-line-strong bg-white px-4 outline-none focus:border-rr-primary"
-                />
-              </label>
-
-              {status.kind === "error" && (
-                <p role="alert" className="rounded-2xl bg-rr-missed-soft px-4 py-3 text-rr-missed-ink">
-                  {status.text}
-                </p>
-              )}
-
-              <button
-                type="submit"
-                disabled={busy}
-                className="mt-2 h-12 rounded-full bg-rr-primary font-semibold text-white transition-colors hover:bg-rr-primary-strong disabled:opacity-60"
-              >
-                {busy ? "Signing in…" : "Sign in"}
-              </button>
+    <AuthLayout
+      title="Welcome back"
+      subtitle="Sign in to see which patients need you today."
+      footer={
+        <>
+          New to Revenue Recovery?{" "}
+          <Link href="/signup" className="font-semibold text-rr-on-canvas underline-offset-4 hover:underline">
+            Create an account
+          </Link>
+        </>
+      }
+    >
+      {!supabase ? (
+        <NotConfigured />
+      ) : status.kind === "sent" ? (
+        <div className="flex flex-col gap-4">
+          <Notice tone="success">
+            <span className="flex items-center gap-2 font-semibold">
+              <Mail size={18} aria-hidden /> Check your email
+            </span>
+            We sent a sign-in link to {status.email}. Open it on this device.
+          </Notice>
+          <button type="button" className={SECONDARY_BUTTON} onClick={() => setStatus({ kind: "idle" })}>
+            Use my password instead
+          </button>
+        </div>
+      ) : (
+        <form className="flex flex-col gap-5" onSubmit={signIn}>
+          <AuthField label="Email">
+            <input type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className={AUTH_INPUT} />
+          </AuthField>
+          <AuthField
+            label="Password"
+            aside={
+              <Link href="/forgot-password" className="text-sm font-normal text-rr-on-canvas-soft hover:text-rr-on-canvas">
+                Forgot password?
+              </Link>
+            }
+          >
+            <span className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                required
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className={`${AUTH_INPUT} pr-12`}
+              />
               <button
                 type="button"
-                disabled={busy}
-                onClick={sendLink}
-                className="h-12 rounded-full border border-rr-line-strong font-semibold transition-colors hover:bg-rr-bg disabled:opacity-60"
+                onClick={() => setShowPassword((value) => !value)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                className="absolute top-1/2 right-2 grid size-9 -translate-y-1/2 place-items-center rounded-full text-rr-on-canvas-soft hover:text-rr-on-canvas"
               >
-                Email me a sign-in link
+                {showPassword ? <EyeOff size={18} aria-hidden /> : <Eye size={18} aria-hidden />}
               </button>
-              <p className="text-center text-sm text-rr-ink-soft">No account? Ask your clinic owner to add you.</p>
-            </form>
-          )}
-        </div>
-      </main>
-    </div>
+            </span>
+          </AuthField>
+
+          {status.kind === "error" && <Notice tone="error">{status.text}</Notice>}
+
+          <button type="submit" disabled={busy} className={`${PRIMARY_BUTTON} mt-1`}>
+            {busy ? "Signing in…" : "Sign in"}
+          </button>
+          <div className="flex items-center gap-3 text-sm text-rr-on-canvas-soft" aria-hidden>
+            <span className="h-px flex-1 bg-rr-canvas-line" /> or <span className="h-px flex-1 bg-rr-canvas-line" />
+          </div>
+          <button type="button" disabled={busy} onClick={sendLink} className={SECONDARY_BUTTON}>
+            <Mail size={17} aria-hidden /> Email me a sign-in link
+          </button>
+        </form>
+      )}
+    </AuthLayout>
   );
 };

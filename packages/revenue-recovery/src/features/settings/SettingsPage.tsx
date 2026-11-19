@@ -5,6 +5,7 @@ import { useClinicSettings, useSaveClinicSettings } from "../../data/useAutomati
 import type { ClinicSettings } from "../../domain/outreach";
 import { Switch } from "../../components/Switch";
 import { AutomationsPage } from "../automations/AutomationsPage";
+import { ClinicDetails, TeamSection } from "./TeamAndClinic";
 
 export const SettingsPage = () => {
   const settings = useClinicSettings();
@@ -17,6 +18,10 @@ export const SettingsPage = () => {
   // Re-mount the form when saved values change so it never shows stale input.
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-10">
+      <div className="flex flex-col gap-4">
+        <ClinicDetails />
+        <TeamSection />
+      </div>
       <SettingsForm
         key={JSON.stringify(settings.data)}
         initial={settings.data}

@@ -55,15 +55,28 @@ TEST_DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54329/postgres .venv/
 
 ### Website and sign-in
 
-Copy `apps/web/.env.example` to `apps/web/.env` and fill in `VITE_SUPABASE_URL` and the publishable key
-(Supabase: Project Settings -> API Keys). There is no demo data: everything shown is your clinic's real data.
+Pages: `/` landing, `/signup`, `/login`, `/forgot-password`, `/reset-password`, `/onboarding` (create the clinic),
+`/app` (the clinic screens), `/account`, `/privacy`, `/terms`.
 
-1. Supabase -> Project Settings -> Data API -> Exposed schemas: add `recovery`.
-2. Supabase -> Authentication -> URL Configuration: Site URL = your website address; add
-   `http://localhost:5173/**` and `https://<your-site>.pages.dev/**` to Redirect URLs (for email sign-in links).
-3. Supabase -> Authentication -> Users -> Add user -> Create new user (tick Auto Confirm User).
-4. Link that login to the clinic: `cd services/engine && .venv/Scripts/python -m scripts.add_staff`
-   (`--list` shows who can sign in).
+Copy `apps/web/.env.example` to `apps/web/.env` and fill in `VITE_SUPABASE_URL` and the publishable key
+(Supabase: Project Settings -> API Keys). Optionally set `VITE_CONTACT_EMAIL` for the privacy and terms pages.
+There is no demo data: everything shown is your clinic's real data.
+
+One-time Supabase setup:
+
+1. Project Settings -> Data API -> Exposed schemas: add `recovery`.
+2. Authentication -> URL Configuration: Site URL = your website address. Redirect URLs: `http://localhost:5173/**`
+   and `https://<your-site>.pages.dev/**` (sign-up confirmation, password reset and email sign-in links come back here).
+3. Authentication -> Emails: Supabase's built-in email sender only allows a few emails an hour. Before real clinics
+   sign up, add your own SMTP (for example Resend or Brevo) under Authentication -> Emails -> SMTP Settings.
+
+How people get in:
+
+- A clinic owner opens `/signup`, confirms their email, and creates the clinic on `/onboarding`. Starter WhatsApp
+  templates and reminder sequences are installed automatically.
+- Team members sign up the same way, then the owner adds their email under Settings -> Team.
+- From the command line, `cd services/engine && .venv/Scripts/python -m scripts.add_staff` links any login to a clinic
+  (`--list` shows who can sign in).
 
 ## Database
 
@@ -283,18 +296,19 @@ migrations; paste it into the SQL Editor. New projects use `npm run db:setup-sql
 
 ## Screens
 
-Five tabs, written for front-desk staff rather than software people:
+Six tabs, written for front-desk staff rather than software people:
 
 | Tab | What it is for |
 |---|---|
 | **Today** | "6 patients need you today." The next patient to contact, with Send WhatsApp / Call and how it went (Booked, Not coming, Not needed, Remind me later), then everyone else waiting. |
+| **Patients** | Add patients (with WhatsApp consent), book appointments, plan the next visit, note enquiries and call-back promises. Mark visits as confirmed, came in, didn't come or cancelled. |
 | **Appointments** | The next 3 days, who has confirmed, and a one-click "Mark as confirmed". |
 | **Messages** | WhatsApp conversations, reminders waiting to be sent, and suggested replies. |
 | **Results** | Money and bookings won back, by type of follow-up, with a downloadable list. |
-| **Settings** | Message times and limits, when patients appear on Today, automatic reminders, privacy. |
+| **Settings** | Clinic details, team (add by email, roles), message times and limits, when patients appear on Today, automatic reminders, privacy. |
 
-Design: mint "clinic paper" background, deep teal text, scrub-green buttons, sunflower for "needs you" and coral for
-urgent. Headlines use Bricolage Grotesque and text uses Lexend, a typeface designed for easy reading.
+Design: deep petrol-teal canvas with soft glows, mint-cream cards, light large headings, blush pink for "needs you"
+and amber for "soon". Type is Manrope throughout.
 
 ## Mounting inside the Dental OS
 

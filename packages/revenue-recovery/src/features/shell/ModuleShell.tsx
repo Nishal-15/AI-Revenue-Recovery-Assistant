@@ -4,6 +4,7 @@ import { useApprovals, useConversations } from "../../data/useOutreach";
 import { useWorklist } from "../../data/useWorklist";
 import { ConfirmationsPage } from "../confirmations/ConfirmationsPage";
 import { InboxPage } from "../inbox/InboxPage";
+import { PatientsPage } from "../patients/PatientsPage";
 import { ReportsPage } from "../reports/ReportsPage";
 import { SettingsPage } from "../settings/SettingsPage";
 import { TodayPage } from "../today/TodayPage";
@@ -56,7 +57,7 @@ export const ModuleShell = ({ section, onSectionChange }: ModuleShellProps) => {
         </div>
       </header>
 
-      <nav aria-label="Sections" className="mt-6 flex gap-2 overflow-x-auto px-4 pb-1 sm:px-8">
+      <nav aria-label="Sections" className="mt-6 flex [scrollbar-width:none] gap-2 overflow-x-auto px-4 pb-1 sm:px-8 [&::-webkit-scrollbar]:hidden">
         {SECTION_IDS.map((id) => {
           const { label, icon: Icon } = SECTIONS[id];
           const active = id === section;
@@ -123,6 +124,8 @@ const SectionContent = ({
   switch (section) {
     case "today":
       return <TodayPage onOpenMessages={() => onSectionChange("messages")} />;
+    case "patients":
+      return <PatientsPage />;
     case "appointments":
       return <ConfirmationsPage />;
     case "messages":

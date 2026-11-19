@@ -1,0 +1,115 @@
+import type { ReactNode } from "react";
+import { Check, Sparkles } from "lucide-react";
+import { Logo } from "./Logo";
+import { Link } from "../lib/router";
+
+type AuthLayoutProps = { title: string; subtitle?: string; children: ReactNode; footer?: ReactNode };
+
+/** Two halves: a calm brand panel that shows what the product does, and the form. */
+export const AuthLayout = ({ title, subtitle, children, footer }: AuthLayoutProps) => (
+  <div className="grid min-h-screen lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
+    <aside className="relative hidden overflow-hidden border-r border-rr-canvas-line bg-[radial-gradient(50rem_35rem_at_20%_0%,rgb(79_165_138/0.28),transparent_60%),radial-gradient(40rem_30rem_at_100%_100%,rgb(228_141_163/0.12),transparent_60%)] p-12 lg:flex lg:flex-col">
+      <Link href="/" aria-label="Revenue Recovery home">
+        <Logo />
+      </Link>
+      <div className="my-auto max-w-md">
+        <p className="text-4xl leading-tight font-light tracking-tight text-balance">
+          Every patient who slipped away, found and gently brought back.
+        </p>
+        <div className="mt-10 flex flex-col gap-3">
+          <PreviewCard tone="bg-rr-risk" title="Ananya hasn't confirmed" detail="Implant consultation · Friday 10:30" badge="Reminder sent" />
+          <PreviewCard tone="bg-rr-recovered" title="Rahul booked his crown" detail="Came back after a reminder" badge="Won back" />
+          <PreviewCard tone="bg-rr-missed" title="Meera asked about aligners" detail="Reply suggested, waiting for you" badge="New" />
+        </div>
+      </div>
+      <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-rr-on-canvas-soft">
+        {["WhatsApp reminders", "No messages at night", "Patients can reply STOP"].map((line) => (
+          <li key={line} className="flex items-center gap-1.5">
+            <Check size={15} className="text-rr-recovered" aria-hidden /> {line}
+          </li>
+        ))}
+      </ul>
+    </aside>
+
+    <main className="flex flex-col px-5 py-6 sm:px-10">
+      <div className="lg:hidden">
+        <Link href="/" aria-label="Revenue Recovery home">
+          <Logo />
+        </Link>
+      </div>
+      <div className="mx-auto my-auto w-full max-w-md py-12">
+        <h1 className="text-4xl font-light tracking-tight">{title}</h1>
+        {subtitle && <p className="mt-2 text-lg text-rr-on-canvas-soft">{subtitle}</p>}
+        <div className="mt-8">{children}</div>
+        {footer && <div className="mt-8 text-center text-rr-on-canvas-soft">{footer}</div>}
+      </div>
+      <p className="text-center text-sm text-rr-on-canvas-soft">
+        <Link href="/privacy" className="hover:text-rr-on-canvas">
+          Privacy
+        </Link>
+        <span className="mx-2" aria-hidden>
+          ·
+        </span>
+        <Link href="/terms" className="hover:text-rr-on-canvas">
+          Terms
+        </Link>
+      </p>
+    </main>
+  </div>
+);
+
+const PreviewCard = ({ tone, title, detail, badge }: { tone: string; title: string; detail: string; badge: string }) => (
+  <div className="flex items-center gap-4 rounded-3xl border border-rr-canvas-line bg-white/[0.06] p-4 backdrop-blur-sm">
+    <span className={`size-2.5 shrink-0 rounded-full ${tone}`} aria-hidden />
+    <div className="min-w-0 flex-1">
+      <p className="font-semibold">{title}</p>
+      <p className="text-sm text-rr-on-canvas-soft">{detail}</p>
+    </div>
+    <span className="flex items-center gap-1 rounded-full bg-rr-surface px-3 py-1 text-xs font-semibold text-rr-ink">
+      {badge === "Won back" && <Sparkles size={12} aria-hidden />}
+      {badge}
+    </span>
+  </div>
+);
+
+/** Shared field + button styles for the dark auth pages. */
+export const AUTH_INPUT =
+  "h-12 w-full rounded-2xl border border-rr-canvas-line bg-white/[0.06] px-4 text-rr-on-canvas outline-none transition-colors placeholder:text-rr-on-canvas-soft/70 focus:border-rr-recovered focus:bg-white/10";
+
+export const PRIMARY_BUTTON =
+  "inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-rr-surface font-semibold text-rr-ink transition-[background-color,transform] hover:bg-white active:scale-[0.98] disabled:opacity-60";
+
+export const SECONDARY_BUTTON =
+  "inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-rr-canvas-line font-semibold transition-colors hover:bg-white/10 disabled:opacity-60";
+
+export const AuthField = ({ label, children, aside }: { label: string; children: ReactNode; aside?: ReactNode }) => (
+  <label className="flex flex-col gap-1.5">
+    <span className="flex items-center justify-between font-medium">
+      {label}
+      {aside}
+    </span>
+    {children}
+  </label>
+);
+
+export const Notice = ({ tone, children }: { tone: "error" | "success" | "info"; children: ReactNode }) => (
+  <p
+    role={tone === "error" ? "alert" : "status"}
+    className={
+      tone === "error"
+        ? "rounded-2xl bg-rr-missed-soft px-4 py-3 text-rr-missed-ink"
+        : tone === "success"
+          ? "rounded-2xl bg-rr-recovered-soft px-4 py-3 text-rr-recovered-ink"
+          : "rounded-2xl bg-rr-risk-soft px-4 py-3 text-rr-risk-ink"
+    }
+  >
+    {children}
+  </p>
+);
+
+export const NotConfigured = () => (
+  <Notice tone="info">
+    Sign-in isn&apos;t connected yet. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to apps/web/.env, then restart the
+    website.
+  </Notice>
+);

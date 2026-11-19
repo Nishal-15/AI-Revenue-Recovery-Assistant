@@ -1,10 +1,16 @@
 @import "tailwindcss";
 @import "../../../packages/revenue-recovery/src/styles/tokens.css";
+/* The clinic screens come from the module; scanning them here keeps every utility in one, correctly ordered sheet. */
+@source "../../../packages/revenue-recovery/src";
 
 html,
 body {
   margin: 0;
-  background: var(--color-rr-canvas);
+  background:
+    radial-gradient(60rem 40rem at 85% -10%, rgb(79 165 138 / 0.18), transparent 60%),
+    radial-gradient(45rem 30rem at -10% 100%, rgb(108 156 192 / 0.10), transparent 60%),
+    var(--color-rr-canvas);
+  background-attachment: fixed;
   color: var(--color-rr-on-canvas);
   font-family: var(--font-rr-sans);
   -webkit-font-smoothing: antialiased;
@@ -50,4 +56,9 @@ body {
   .rr-tap {
     animation: none;
   }
+}
+
+/* On the website the page itself carries the glow, so the clinic screens don't end in a hard edge. */
+.rr-root {
+  background: transparent;
 }
