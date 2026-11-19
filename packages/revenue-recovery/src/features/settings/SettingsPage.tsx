@@ -26,8 +26,8 @@ export const SettingsPage = () => {
       />
       <section aria-labelledby="rr-auto-reminders" className="flex flex-col gap-4">
         <div>
-          <h2 id="rr-auto-reminders" className="font-rr-display text-2xl font-bold">Automatic reminders</h2>
-          <p className="text-rr-ink-soft">The WhatsApp messages sent for you, and when they go out.</p>
+          <h2 id="rr-auto-reminders" className="text-2xl font-normal text-rr-on-canvas">Automatic reminders</h2>
+          <p className="text-rr-on-canvas-soft">The WhatsApp messages sent for you, and when they go out.</p>
         </div>
         <AutomationsPage />
       </section>

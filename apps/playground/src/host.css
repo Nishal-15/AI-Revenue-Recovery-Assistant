@@ -4,7 +4,7 @@ html,
 body {
   margin: 0;
   min-height: 100%;
-  background: #edf5f2;
+  background: #0f2c31;
   font-family: system-ui, sans-serif;
 }
 .host-layout {
@@ -15,12 +15,17 @@ body {
   position: sticky;
   top: 0;
   height: 100vh;
-  width: 220px;
+  width: 200px;
   flex-shrink: 0;
   box-sizing: border-box;
-  background: #fff;
-  border-right: 1px solid #d9e7e2;
-  padding: 20px;
+  background: #0b2226;
+  border-right: 1px solid rgb(232 241 238 / 0.08);
+  padding: 24px 18px;
+  color: #a8c2bd;
+  font-family: "Manrope", system-ui, sans-serif;
+}
+.host-sidebar strong {
+  color: #e9f2ef;
 }
 .host-content {
   flex: 1;

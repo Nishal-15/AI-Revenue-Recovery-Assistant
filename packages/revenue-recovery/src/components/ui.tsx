@@ -23,7 +23,7 @@ export const CardHeader = ({ title, subtitle, action }: { title: string; subtitl
 type ButtonVariant = "primary" | "ghost" | "outline" | "danger";
 
 const BUTTON_BASE =
-  "inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded-lg px-3.5 text-[13px] font-medium whitespace-nowrap " +
+  "inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold whitespace-nowrap " +
   "transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.97] disabled:opacity-50 disabled:active:scale-100";
 
 const BUTTON_VARIANTS = {

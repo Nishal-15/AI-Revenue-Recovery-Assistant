@@ -4,7 +4,7 @@
  * the dental OS, and a global reset would restyle the host app. Instead a small
  * reset is scoped to .rr-root, and all brand tokens are namespaced "rr-".
  */
-@import url("https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,500..800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@300..800&display=swap");
 @layer theme, base, components, utilities;
 @import "tailwindcss/theme.css" layer(theme);
 @import "tailwindcss/utilities.css" layer(utilities);
@@ -12,44 +12,51 @@
 @source "../";
 
 @theme {
-  /* Mint "clinic paper" background, white surfaces, deep teal ink. */
-  --color-rr-bg: #edf5f2;
-  --color-rr-surface: #ffffff;
-  --color-rr-line: #d9e7e2;
-  --color-rr-line-strong: #bfd4cc;
+  /* Canvas: deep petrol teal behind everything (the dark glass look). */
+  --color-rr-canvas: #0f2c31;
+  --color-rr-canvas-raised: #163a40;
+  --color-rr-canvas-line: rgb(232 241 238 / 0.12);
+  --color-rr-on-canvas: #e9f2ef;
+  --color-rr-on-canvas-soft: #a8c2bd;
 
-  --color-rr-ink: #12343b;
-  --color-rr-ink-soft: #45626a;
-  --color-rr-ink-faint: #6f878d;
+  /* Cards: mint cream, with a slightly deeper mint for insets inside them. */
+  --color-rr-surface: #f0f5f2;
+  --color-rr-bg: #e2ece8;
+  --color-rr-line: #d3e1dc;
+  --color-rr-line-strong: #b6cbc4;
 
-  /* Scrub green: the one action colour. */
-  --color-rr-primary: #0f7b6c;
-  --color-rr-primary-strong: #0a5f53;
-  --color-rr-primary-soft: #d6efe9;
+  --color-rr-ink: #10343a;
+  --color-rr-ink-soft: #3f5f64;
+  --color-rr-ink-faint: #67868a;
 
-  /* Meaning colours: booked (green), needs you (sunflower), urgent (coral), information (blue). */
-  --color-rr-recovered: #1e9e62;
-  --color-rr-recovered-soft: #ddf3e7;
-  --color-rr-risk: #e9a21b;
-  --color-rr-risk-soft: #fdf0d3;
-  --color-rr-missed: #d9534a;
-  --color-rr-missed-soft: #fbe3e1;
-  --color-rr-info: #4c6fd8;
-  --color-rr-info-soft: #e6ecfb;
+  /* Sage teal: the action colour (gauges, buttons, progress). */
+  --color-rr-primary: #23746b;
+  --color-rr-primary-strong: #185a53;
+  --color-rr-primary-soft: #d2e7e0;
+
+  /* Meaning colours: booked (sage green), needs you (sand), urgent (blush pink), information (soft blue). */
+  --color-rr-recovered: #4fa58a;
+  --color-rr-recovered-soft: #d3ebe1;
+  --color-rr-risk: #d7a44a;
+  --color-rr-risk-soft: #f3e5c8;
+  --color-rr-missed: #e48da3;
+  --color-rr-missed-soft: #f7dbe2;
+  --color-rr-info: #6c9cc0;
+  --color-rr-info-soft: #dbe8f1;
 
   /* Readable text on the matching soft surface */
-  --color-rr-recovered-ink: #13724a;
-  --color-rr-risk-ink: #7a5000;
-  --color-rr-missed-ink: #a8322a;
-  --color-rr-info-ink: #3350a8;
+  --color-rr-recovered-ink: #1d6a52;
+  --color-rr-risk-ink: #6f4f10;
+  --color-rr-missed-ink: #93334d;
+  --color-rr-info-ink: #2d5c80;
 
-  /* Bricolage Grotesque for headlines, Lexend (designed for easy reading) for everything else. */
-  --font-rr-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
-  --font-rr-sans: "Lexend", ui-sans-serif, system-ui, sans-serif;
+  /* One family throughout: Manrope, light weights for big numbers, bold for names and buttons. */
+  --font-rr-display: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-rr-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
 
-  --radius-rr-card: 1.25rem;
-  --shadow-rr-card: 0 1px 0 rgb(18 52 59 / 0.04), 0 8px 24px -12px rgb(18 52 59 / 0.12);
-  --shadow-rr-lift: 0 2px 0 rgb(18 52 59 / 0.05), 0 18px 40px -16px rgb(18 52 59 / 0.22);
+  --radius-rr-card: 1.5rem;
+  --shadow-rr-card: 0 1px 0 rgb(255 255 255 / 0.04), 0 12px 32px -18px rgb(0 0 0 / 0.45);
+  --shadow-rr-lift: 0 24px 48px -20px rgb(0 0 0 / 0.55);
 }
 
 @layer base {
@@ -66,10 +73,20 @@
   .rr-root {
     font-family: var(--font-rr-sans);
     color: var(--color-rr-ink);
-    background: var(--color-rr-bg);
+    /* Petrol teal with a soft glow, like light through a clinic window. */
+    background:
+      radial-gradient(60rem 40rem at 78% -10%, rgb(79 165 138 / 0.22), transparent 60%),
+      radial-gradient(40rem 30rem at -10% 110%, rgb(108 156 192 / 0.12), transparent 60%),
+      var(--color-rr-canvas);
     font-size: 15px;
     line-height: 1.55;
     -webkit-font-smoothing: antialiased;
+  }
+
+  /* Light cards sit on the dark canvas: anything inside them reads dark unless it says otherwise. */
+  .rr-root .bg-rr-surface,
+  .rr-root .bg-rr-bg {
+    color: var(--color-rr-ink);
   }
 
   .rr-root button {
@@ -97,7 +114,7 @@
   }
 
   .rr-root :focus-visible {
-    outline: 2px solid var(--color-rr-primary);
+    outline: 2px solid var(--color-rr-recovered);
     outline-offset: 2px;
   }
 

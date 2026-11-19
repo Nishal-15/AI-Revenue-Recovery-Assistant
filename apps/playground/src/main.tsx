@@ -11,9 +11,9 @@ const supabase = url && anonKey ? createClient(url, anonKey) : undefined;
 
 const HostSidebar = () => (
   <aside className="host-sidebar">
-    <strong style={{ color: "#0b7f7b" }}>Dental OS</strong>
-    <p style={{ color: "#8193a3", fontSize: 13, marginTop: 24 }}>Patients · Calendar · Billing</p>
-    <p style={{ color: "#0b7f7b", fontSize: 13, fontWeight: 600 }}>Revenue Recovery</p>
+    <strong>Dental OS</strong>
+    <p style={{ fontSize: 13, marginTop: 24, lineHeight: 2 }}>Patients<br />Calendar<br />Billing</p>
+    <p style={{ fontSize: 13, color: "#e9f2ef", fontWeight: 600 }}>Revenue Recovery</p>
   </aside>
 );
 

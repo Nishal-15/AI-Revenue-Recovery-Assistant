@@ -55,11 +55,21 @@ export const ApprovalQueue = ({ items, templates }: ApprovalQueueProps) => {
               <p className="mt-1 line-clamp-2 text-[13px] text-rr-ink-soft">{item.body}</p>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => approve.mutate([item.id])} disabled={approve.isPending}>
+              <Button
+                variant="ghost"
+                className="min-w-28 bg-rr-primary-soft text-rr-primary-strong hover:bg-rr-primary hover:text-white"
+                onClick={() => approve.mutate([item.id])}
+                disabled={approve.isPending}
+              >
                 <Check size={15} />
                 Send
               </Button>
-              <Button variant="ghost" onClick={() => cancel.mutate(item.id)} disabled={cancel.isPending}>
+              <Button
+                variant="ghost"
+                className="min-w-28 bg-rr-missed-soft text-rr-missed-ink hover:bg-rr-missed hover:text-rr-ink"
+                onClick={() => cancel.mutate(item.id)}
+                disabled={cancel.isPending}
+              >
                 <X size={15} />
                 Don&apos;t send
               </Button>

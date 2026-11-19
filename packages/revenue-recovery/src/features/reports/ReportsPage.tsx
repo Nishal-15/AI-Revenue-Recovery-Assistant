@@ -1,9 +1,10 @@
 import { Suspense, lazy, useState, type ReactNode } from "react";
-import { Download, FileBarChart2, Info } from "lucide-react";
+import { CalendarCheck, CalendarPlus, Download, FileBarChart2, Info, Sparkles, Target } from "lucide-react";
+import { useDashboardSummary } from "../../data/useDashboardSummary";
 import { Button, Card, CardHeader, EmptyState, ErrorBanner, ListSkeleton, Pill, SegmentedControl, cx } from "../../components/ui";
 import { useRecoveryContext } from "../../data/context";
 import { useReport } from "../../data/useReport";
-import { LEAK_META, TONE_CLASSES } from "../../domain/leaks";
+import { LEAK_META, TONE_CLASSES, type Tone } from "../../domain/leaks";
 import type { MessageFunnel, RecoveredBooking, ReportPeriod, ReportSummary } from "../../domain/reports";
 import { BOOKING_RULE_LABELS, PERIOD_LABELS } from "../../domain/reports";
 import { downloadCsv, toCsv } from "../../lib/csv";
@@ -57,12 +58,12 @@ const PERIOD_SENTENCE = {
 
 const ReportBody = ({ report, currency, period }: { report: ReportSummary; currency: string; period: ReportPeriod }) => (
   <>
-    <section className="grid grid-cols-1 items-center gap-2 overflow-hidden rounded-[1.75rem] bg-rr-surface shadow-rr-lift lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+    <section className="grid grid-cols-1 items-center gap-2 overflow-hidden rounded-rr-card border border-rr-canvas-line bg-white/5 text-rr-on-canvas lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
       <div className="p-6 sm:p-8">
-        <h2 className="font-rr-display text-4xl leading-[1.05] font-extrabold tracking-tight text-balance sm:text-5xl">
+        <h2 className="text-4xl leading-[1.1] font-light tracking-tight text-balance sm:text-5xl">
           {formatMoney(report.recoveredValue, currency)} came back {PERIOD_SENTENCE[period]}.
         </h2>
-        <p className="mt-3 max-w-md text-lg text-pretty text-rr-ink-soft">
+        <p className="mt-3 max-w-md text-lg text-pretty text-rr-on-canvas-soft">
           From {report.recoveredBookings} patients who booked or kept their appointment after you followed up.
         </p>
       </div>
@@ -73,17 +74,22 @@ const ReportBody = ({ report, currency, period }: { report: ReportSummary; curre
       </div>
     </section>
 
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-      <Stat label="Bookings won back" value={String(report.recoveredBookings)}>
-        {report.newBookings} new bookings and {report.savedAppointments} kept appointments
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <Stat icon={<CalendarPlus size={20} />} tone="primary" label="New bookings" value={String(report.newBookings)}>
+        booked after you followed up
       </Stat>
-      <Stat label="Success rate" value={formatPercent(report.recoveryRate)}>
+      <Stat icon={<CalendarCheck size={20} />} tone="info" label="Kept appointments" value={String(report.savedAppointments)}>
+        confirmed after a reminder
+      </Stat>
+      <Stat icon={<Target size={20} />} tone="recovered" label="Success rate" value={formatPercent(report.recoveryRate)}>
         {report.itemsRecovered} booked, {report.itemsLost} not coming
       </Stat>
-      <Stat label="Done for you" value={String(report.autoResolved)}>
-        patients confirmed themselves on WhatsApp
+      <Stat icon={<Sparkles size={20} />} tone="missed" label="Done for you" value={String(report.autoResolved)}>
+        confirmed themselves on WhatsApp
       </Stat>
     </div>
+
+    {period === "this_month" && <WeeklyBars currency={currency} />}
 
     <div className="grid grid-cols-1 gap-4 xl:grid-cols-5">
       <LeakTable report={report} currency={currency} />
@@ -92,7 +98,7 @@ const ReportBody = ({ report, currency, period }: { report: ReportSummary; curre
 
     <BookingsTable bookings={report.bookings} currency={currency} />
 
-    <p className="flex items-start gap-2 px-1 text-xs text-rr-ink-faint">
+    <p className="flex items-start gap-2 px-1 text-sm text-rr-on-canvas-soft">
       <Info size={14} className="mt-px shrink-0" />
       A booking counts as won back when the patient books soon after your message or call, or confirms an appointment
       after a reminder. If they cancel or don't turn up, it is taken off again by itself.
@@ -100,13 +106,69 @@ const ReportBody = ({ report, currency, period }: { report: ReportSummary; curre
   </>
 );
 
-const Stat = ({ label, value, tone, children }: { label: string; value: string; tone?: string; children: ReactNode }) => (
-  <Card className="p-5">
-    <p className="text-sm text-rr-ink-soft">{label}</p>
-    <p className={cx("rr-tabular mt-1 font-rr-display text-3xl font-bold tracking-tight", tone)}>{value}</p>
-    <p className="mt-1 text-xs text-rr-ink-faint">{children}</p>
-  </Card>
+const Stat = ({
+  icon,
+  tone,
+  label,
+  value,
+  children,
+}: {
+  icon: ReactNode;
+  tone: Tone;
+  label: string;
+  value: string;
+  children: ReactNode;
+}) => (
+  <div className="flex items-start gap-4 rounded-rr-card bg-rr-surface p-5">
+    <span className={cx("grid size-12 shrink-0 place-items-center rounded-2xl", TONE_CLASSES[tone].soft, TONE_CLASSES[tone].ink)} aria-hidden>
+      {icon}
+    </span>
+    <div className="min-w-0">
+      <p className="text-rr-ink-soft">{label}</p>
+      <p className="rr-tabular text-4xl font-light tracking-tight">{value}</p>
+      <p className="mt-0.5 text-sm text-rr-ink-faint">{children}</p>
+    </div>
+  </div>
 );
+
+/** Money won back per week, as bars with the amount above each (the latest week highlighted). */
+const WeeklyBars = ({ currency }: { currency: string }) => {
+  const summary = useDashboardSummary();
+  const weeks = summary.data?.weekly ?? [];
+  if (weeks.length === 0) return null;
+  const max = Math.max(...weeks.map((week) => week.recoveredValue), 1);
+  return (
+    <section aria-labelledby="rr-weekly" className="rounded-rr-card bg-rr-surface p-5 sm:p-6">
+      <h2 id="rr-weekly" className="text-xl font-normal">
+        Money won back each week
+      </h2>
+      <ol className="mt-6 grid h-56 grid-cols-8 items-end gap-2 sm:gap-4">
+        {weeks.map((week, index) => {
+          const latest = index === weeks.length - 1;
+          const label = new Date(week.weekStart).toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+          return (
+            <li key={week.weekStart} className="flex h-full flex-col items-center justify-end gap-2">
+              <span
+                className={cx(
+                  "rr-tabular rounded-full border px-2 py-0.5 text-[11px] whitespace-nowrap sm:text-xs",
+                  latest ? "border-rr-primary bg-rr-primary-soft text-rr-primary-strong" : "border-rr-line-strong text-rr-ink-soft",
+                )}
+              >
+                {Math.round(week.recoveredValue / 1000)}k
+              </span>
+              <span
+                className={cx("w-full rounded-t-xl", latest ? "bg-rr-primary" : "bg-rr-primary-soft")}
+                style={{ height: `${Math.max((week.recoveredValue / max) * 100, 4)}%` }}
+                title={`Week of ${label}: ${formatMoney(week.recoveredValue, currency)}`}
+              />
+              <span className="text-[11px] whitespace-nowrap text-rr-ink-soft sm:text-xs">{label}</span>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
+  );
+};
 
 const LeakTable = ({ report, currency }: { report: ReportSummary; currency: string }) => {
   const max = Math.max(...report.byLeak.map((leak) => leak.recoveredValue), 1);
