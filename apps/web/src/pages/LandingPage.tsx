@@ -14,7 +14,10 @@ import {
   UserRoundSearch,
 } from "lucide-react";
 import { Logo } from "../components/Logo";
+import { QuietBoundary } from "../components/QuietBoundary";
 import { Link } from "../lib/router";
+import { BRAND } from "../lib/brand";
+import { ThemeToggle } from "../components/ThemeToggle";
 
 // The 3D "patients coming back" animation loads after the page so the words appear first.
 const RecoveryAnimation = lazy(() => import("@dental-os/revenue-recovery/animation"));
@@ -24,6 +27,7 @@ export const LandingPage = () => (
     <Header />
     <main>
       <Hero />
+      <ProductPreview />
       <Leaks />
       <HowItWorks />
       <SmartSuggestions />
@@ -38,7 +42,7 @@ export const LandingPage = () => (
 
 const Header = () => (
   <header className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-6">
-    <Link href="/" aria-label="Revenue Recovery home">
+    <Link href="/" aria-label={`${BRAND} home`}>
       <Logo />
     </Link>
     <nav aria-label="Main" className="flex items-center gap-1 sm:gap-2">
@@ -54,7 +58,7 @@ const Header = () => (
       <Link href="/login" className="rounded-full px-4 py-2 text-rr-on-canvas-soft transition-colors hover:text-rr-on-canvas">
         Sign in
       </Link>
-      <Link href="/signup" className="rounded-full bg-rr-surface px-5 py-2.5 font-semibold text-rr-ink transition-colors hover:bg-white">
+      <Link href="/signup" className="rounded-full bg-rr-cta px-5 py-2.5 font-semibold text-rr-on-cta transition-colors hover:bg-rr-cta-hover">
         Get started
       </Link>
     </nav>
@@ -64,26 +68,26 @@ const Header = () => (
 const Hero = () => (
   <section className="mx-auto grid max-w-6xl items-center gap-12 px-5 pt-8 pb-20 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:pt-16">
     <div>
-      <p className="inline-flex items-center gap-2 rounded-full border border-rr-canvas-line bg-white/5 px-4 py-1.5 text-sm text-rr-on-canvas-soft">
+      <p className="inline-flex items-center gap-2 rounded-full border border-rr-canvas-line bg-rr-glass px-4 py-1.5 text-sm text-rr-on-canvas-soft">
         <Sparkles size={15} aria-hidden /> For dental clinics in India
       </p>
       <h1 className="mt-6 text-5xl leading-[1.04] font-light tracking-tight text-balance sm:text-6xl lg:text-7xl">
         Bring back the patients your clinic is quietly losing.
       </h1>
       <p className="mt-6 max-w-xl text-lg text-pretty text-rr-on-canvas-soft sm:text-xl">
-        Unanswered enquiries, appointments nobody confirmed, crowns never booked. Revenue Recovery finds them every few
+        Unanswered enquiries, appointments nobody confirmed, crowns never booked. {BRAND} finds them every few
         minutes and reminds patients on WhatsApp, so your front desk doesn&apos;t have to remember everyone.
       </p>
       <div className="mt-9 flex flex-wrap gap-3">
         <Link
           href="/signup"
-          className="inline-flex h-13 items-center gap-2 rounded-full bg-rr-surface px-7 text-lg font-semibold text-rr-ink transition-colors hover:bg-white"
+          className="inline-flex h-13 items-center gap-2 rounded-full bg-rr-cta px-7 text-lg font-semibold text-rr-on-cta transition-colors hover:bg-rr-cta-hover"
         >
           Get started <ArrowRight size={19} aria-hidden />
         </Link>
         <a
           href="#how"
-          className="inline-flex h-13 items-center rounded-full border border-rr-canvas-line bg-white/5 px-7 text-lg transition-colors hover:bg-white/10"
+          className="inline-flex h-13 items-center rounded-full border border-rr-canvas-line bg-rr-glass px-7 text-lg transition-colors hover:bg-rr-glass-strong"
         >
           See how it works
         </a>
@@ -103,7 +107,7 @@ const ChatDemo = () => {
 
   return (
     <figure className="relative mx-auto w-full max-w-md" aria-label="Example: a WhatsApp reminder confirmed by the patient">
-      <div className="rounded-[2.25rem] border border-rr-canvas-line bg-rr-canvas-raised/80 p-3 shadow-[0_40px_80px_-30px_rgb(0_0_0/0.6)]">
+      <div className="rounded-[2.25rem] border border-rr-canvas-line bg-rr-canvas-raised/80 p-3 shadow-rr-lift">
         <div className="rounded-[1.75rem] bg-[#e7efe9] p-4 pb-10 text-rr-ink sm:p-5 sm:pb-12">
           <div className="flex items-center gap-3 border-b border-rr-line pb-3">
             <span className="grid size-10 place-items-center rounded-full bg-rr-primary text-sm font-bold text-white">SD</span>
@@ -139,7 +143,7 @@ const ChatDemo = () => {
       </div>
       {tapped && (
         <figcaption
-          className="rr-arrive absolute -bottom-6 left-1/2 flex w-max max-w-[92%] -translate-x-1/2 items-center gap-2.5 rounded-full bg-rr-surface px-5 py-3 text-rr-ink shadow-[0_20px_40px_-15px_rgb(0_0_0/0.5)]"
+          className="rr-arrive absolute -bottom-6 left-1/2 flex w-max max-w-[92%] -translate-x-1/2 items-center gap-2.5 rounded-full bg-rr-surface px-5 py-3 text-rr-ink shadow-rr-lift"
           style={{ animationDelay: "1100ms" }}
         >
           <span className="grid size-7 place-items-center rounded-full bg-rr-recovered text-white">
@@ -151,6 +155,91 @@ const ChatDemo = () => {
     </figure>
   );
 };
+
+/** A drawn example of the Today screen, so visitors see the product before signing up. */
+const ProductPreview = () => (
+  <section aria-labelledby="preview-title" className="mx-auto max-w-6xl px-5 pt-6 pb-20">
+    <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+      <h2 id="preview-title" className="max-w-xl text-4xl leading-tight font-light tracking-tight text-balance sm:text-5xl">
+        One calm list for a busy front desk.
+      </h2>
+      <p className="max-w-sm text-rr-on-canvas-soft">Open it in the morning. It tells you who to contact, why, and what they are worth.</p>
+    </div>
+    <figure className="overflow-hidden rounded-[2rem] border border-rr-canvas-line bg-rr-canvas-raised shadow-rr-lift">
+      <div className="flex items-center gap-2 border-b border-rr-canvas-line px-5 py-3" aria-hidden>
+        <span className="size-3 rounded-full bg-rr-missed/70" />
+        <span className="size-3 rounded-full bg-rr-risk/70" />
+        <span className="size-3 rounded-full bg-rr-recovered/70" />
+        <span className="ml-4 hidden rounded-full bg-rr-glass px-4 py-1 text-xs text-rr-on-canvas-soft sm:block">your-clinic · Today</span>
+      </div>
+      <div className="grid gap-5 p-5 sm:p-7 lg:grid-cols-[minmax(0,1fr)_18rem]" aria-hidden>
+        <div className="flex min-w-0 flex-col gap-3">
+          <p className="text-2xl font-light">
+            Good morning. <span className="text-rr-on-canvas-soft">3 patients need you today.</span>
+          </p>
+          <div className="rounded-3xl bg-rr-surface p-5 text-rr-ink">
+            <div className="flex items-start gap-3">
+              <span className="grid size-11 shrink-0 place-items-center rounded-full bg-rr-missed-soft text-sm font-bold text-rr-missed-ink">AI</span>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs text-rr-ink-soft">Next up</p>
+                <p className="text-lg font-semibold">Ananya Iyer</p>
+                <p className="text-sm text-rr-ink-soft">Implant consultation on Friday, not confirmed</p>
+              </div>
+              <span className="rounded-full bg-rr-missed-soft px-2.5 py-0.5 text-xs font-semibold text-rr-missed-ink">Urgent</span>
+            </div>
+            <div className="mt-4 h-1.5 rounded-full bg-rr-bg">
+              <div className="h-full w-4/5 rounded-full bg-rr-missed" />
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2 text-sm font-semibold">
+              <span className="rounded-full bg-rr-primary px-4 py-2 text-white">Send WhatsApp</span>
+              <span className="rounded-full border border-rr-line-strong px-4 py-2">Call</span>
+              <span className="hidden rounded-full border border-rr-line-strong px-4 py-2 sm:inline">Booked</span>
+            </div>
+          </div>
+          {[
+            { initials: "MK", name: "Meera Krishnan", why: "Check-up is 12 days late", pill: "Soon", tone: "bg-rr-risk-soft text-rr-risk-ink" },
+            { initials: "VS", name: "Vikram Shah", why: "Asked about aligners last night", pill: "New", tone: "bg-rr-info-soft text-rr-info-ink" },
+          ].map((row) => (
+            <div key={row.name} className="flex items-center gap-3 rounded-3xl border border-rr-canvas-line bg-rr-glass p-4">
+              <span className="grid size-10 shrink-0 place-items-center rounded-full bg-rr-surface text-sm font-bold text-rr-ink">{row.initials}</span>
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold">{row.name}</p>
+                <p className="truncate text-sm text-rr-on-canvas-soft">{row.why}</p>
+              </div>
+              <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${row.tone}`}>{row.pill}</span>
+            </div>
+          ))}
+        </div>
+        <div className="flex flex-col gap-3">
+          <div className="rounded-3xl bg-rr-surface p-5 text-rr-ink">
+            <p className="font-semibold">Won back this month</p>
+            <div className="relative mx-auto mt-4 size-36">
+              <svg viewBox="0 0 120 120" className="size-full -rotate-90">
+                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--color-rr-bg)" strokeWidth="12" />
+                <circle cx="60" cy="60" r="50" fill="none" stroke="var(--color-rr-primary)" strokeWidth="12" strokeLinecap="round" strokeDasharray="314" strokeDashoffset="132" />
+              </svg>
+              <span className="absolute inset-0 grid place-items-center text-3xl font-light">7</span>
+            </div>
+            <p className="mt-2 text-center text-sm text-rr-ink-soft">bookings came back after a reminder</p>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-3xl border border-rr-canvas-line bg-rr-glass p-4">
+              <p className="text-3xl font-light">12</p>
+              <p className="text-sm text-rr-on-canvas-soft">Confirmed by WhatsApp</p>
+            </div>
+            <div className="rounded-3xl border border-rr-canvas-line bg-rr-glass p-4">
+              <p className="text-3xl font-light">0</p>
+              <p className="text-sm text-rr-on-canvas-soft">Messages at night</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <figcaption className="border-t border-rr-canvas-line px-5 py-3 text-sm text-rr-on-canvas-soft sm:px-7">
+        Example clinic. Your screen shows your own patients.
+      </figcaption>
+    </figure>
+  </section>
+);
 
 const LEAKS = [
   {
@@ -222,7 +311,7 @@ const HowItWorks = () => (
     <ol className="mt-12 grid gap-8 md:grid-cols-4 md:gap-6">
       {STEPS.map((step, index) => (
         <li key={step.title} className="relative">
-          <span className="grid size-12 place-items-center rounded-full border border-rr-canvas-line bg-white/5 text-lg font-light" aria-hidden>
+          <span className="grid size-12 place-items-center rounded-full border border-rr-canvas-line bg-rr-glass text-lg font-light" aria-hidden>
             {index + 1}
           </span>
           {index < STEPS.length - 1 && (
@@ -276,7 +365,7 @@ const SmartSuggestions = () => (
 
 const ResultsBand = () => (
   <section aria-labelledby="results" className="mx-auto max-w-6xl px-5 py-20">
-    <div className="grid items-center overflow-hidden rounded-rr-card border border-rr-canvas-line bg-white/5 lg:grid-cols-2">
+    <div className="grid items-center overflow-hidden rounded-rr-card border border-rr-canvas-line bg-rr-glass lg:grid-cols-2">
       <div className="p-7 sm:p-10">
         <h2 id="results" className="text-4xl leading-tight font-light tracking-tight text-balance sm:text-5xl">
           See exactly what came back.
@@ -296,9 +385,11 @@ const ResultsBand = () => (
         </ul>
       </div>
       <div className="h-64 lg:h-96" aria-hidden>
-        <Suspense fallback={null}>
-          <RecoveryAnimation />
-        </Suspense>
+        <QuietBoundary>
+          <Suspense fallback={null}>
+            <RecoveryAnimation />
+          </Suspense>
+        </QuietBoundary>
       </div>
     </div>
   </section>
@@ -333,7 +424,7 @@ const Safety = () => (
 const FAQS = [
   {
     q: "Do we need to change how our front desk works?",
-    a: "No. Add a patient and their next appointment in a few seconds, the way you would in a diary. Revenue Recovery watches in the background and only asks for you when a patient needs a person.",
+    a: `No. Add a patient and their next appointment in a few seconds, the way you would in a diary. ${BRAND} watches in the background and only asks for you when a patient needs a person.`,
   },
   {
     q: "Which WhatsApp number do the messages come from?",
@@ -367,7 +458,7 @@ const Faq = () => (
     </div>
     <div className="flex flex-col gap-3">
       {FAQS.map(({ q, a }) => (
-        <details key={q} className="group rounded-3xl border border-rr-canvas-line bg-white/[0.04] px-6 py-5 open:bg-white/[0.07]">
+        <details key={q} className="group rounded-3xl border border-rr-canvas-line bg-rr-glass px-6 py-5 open:bg-rr-glass">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-lg font-semibold [&::-webkit-details-marker]:hidden">
             {q}
             <span className="grid size-8 shrink-0 place-items-center rounded-full border border-rr-canvas-line text-xl font-light transition-transform group-open:rotate-45" aria-hidden>
@@ -409,7 +500,8 @@ const Footer = () => (
         <Link href="/terms" className="hover:text-rr-on-canvas">Terms</Link>
         <Link href="/login" className="hover:text-rr-on-canvas">Sign in</Link>
       </nav>
-      <p>© {new Date().getFullYear()} Revenue Recovery. Made for dental clinics.</p>
+      <ThemeToggle />
+      <p>© {new Date().getFullYear()} {BRAND}. Made for dental clinics.</p>
     </div>
   </footer>
 );

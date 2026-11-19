@@ -132,7 +132,7 @@ const PasswordMeter = ({ password }: { password: string }) => {
     <div className="-mt-2 flex items-center gap-3" aria-live="polite">
       <div className="flex flex-1 gap-1.5" aria-hidden>
         {[0, 1, 2, 3].map((index) => (
-          <span key={index} className={`h-1.5 flex-1 rounded-full ${index < score ? colour : "bg-white/10"}`} />
+          <span key={index} className={`h-1.5 flex-1 rounded-full ${index < score ? colour : "bg-rr-glass-strong"}`} />
         ))}
       </div>
       <span className="text-sm text-rr-on-canvas-soft">{label}</span>

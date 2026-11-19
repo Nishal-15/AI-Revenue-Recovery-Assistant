@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Logo } from "../components/Logo";
 import { Link } from "../lib/router";
+import { BRAND } from "../lib/brand";
 
 const CONTACT_EMAIL = (import.meta.env.VITE_CONTACT_EMAIL as string | undefined)?.trim() || null;
 const LAST_UPDATED = "19 November 2026";
@@ -18,7 +19,7 @@ const Contact = () =>
 const LegalLayout = ({ title, intro, children }: { title: string; intro: string; children: ReactNode }) => (
   <div className="min-h-screen">
     <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-6">
-      <Link href="/" aria-label="Revenue Recovery home">
+      <Link href="/" aria-label={`${BRAND} home`}>
         <Logo />
       </Link>
       <Link href="/" className="inline-flex items-center gap-1.5 text-rr-on-canvas-soft hover:text-rr-on-canvas">
@@ -39,13 +40,13 @@ const LegalLayout = ({ title, intro, children }: { title: string; intro: string;
 export const PrivacyPage = () => (
   <LegalLayout
     title="Privacy policy"
-    intro="Revenue Recovery helps dental clinics remind their own patients about appointments and treatment. This page explains what information is used, why, and the choices patients and clinics have."
+    intro={`${BRAND} helps dental clinics remind their own patients about appointments and treatment. This page explains what information is used, why, and the choices patients and clinics have.`}
   >
     <section>
       <h2>Who is responsible</h2>
       <p>
         Each clinic decides which patients to add and what to send them, so the clinic is responsible for its patients&apos;
-        information (the data fiduciary under India&apos;s Digital Personal Data Protection Act, 2023). Revenue Recovery
+        information (the data fiduciary under India&apos;s Digital Personal Data Protection Act, 2023). {BRAND}
         processes that information on the clinic&apos;s behalf and only for the purposes below.
       </p>
     </section>
@@ -119,7 +120,7 @@ export const PrivacyPage = () => (
 export const TermsPage = () => (
   <LegalLayout
     title="Terms of use"
-    intro="These terms apply to clinics and their staff who use Revenue Recovery. By creating an account you agree to them."
+    intro={`These terms apply to clinics and their staff who use ${BRAND}. By creating an account you agree to them.`}
   >
     <section>
       <h2>Your account</h2>
@@ -171,17 +172,17 @@ export const TermsPage = () => (
 export const NotFoundPage = () => (
   <div className="grid min-h-screen place-items-center px-5 text-center">
     <div>
-      <Link href="/" aria-label="Revenue Recovery home" className="inline-block">
+      <Link href="/" aria-label={`${BRAND} home`} className="inline-block">
         <Logo />
       </Link>
       <p className="mt-16 text-8xl font-light tracking-tight text-rr-on-canvas-soft/60">404</p>
       <h1 className="mt-4 text-3xl font-light">This page wandered off.</h1>
       <p className="mt-2 text-rr-on-canvas-soft">Unlike your patients, we can&apos;t send it a reminder.</p>
       <div className="mt-8 flex flex-wrap justify-center gap-3">
-        <Link href="/" className="inline-flex h-12 items-center rounded-full bg-rr-surface px-6 font-semibold text-rr-ink hover:bg-white">
+        <Link href="/" className="inline-flex h-12 items-center rounded-full bg-rr-cta px-6 font-semibold text-rr-on-cta hover:bg-rr-cta-hover">
           Go home
         </Link>
-        <Link href="/app" className="inline-flex h-12 items-center rounded-full border border-rr-canvas-line px-6 hover:bg-white/10">
+        <Link href="/app" className="inline-flex h-12 items-center rounded-full border border-rr-canvas-line px-6 hover:bg-rr-glass-strong">
           Open my clinic
         </Link>
       </div>

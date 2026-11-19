@@ -4,6 +4,7 @@ import { AUTH_INPUT, AuthField, AuthLayout, NotConfigured, Notice, PRIMARY_BUTTO
 import { Link, navigate } from "../lib/router";
 import { friendlyAuthError } from "../lib/session";
 import { supabase } from "../lib/supabase";
+import { BRAND } from "../lib/brand";
 
 type Status = { kind: "idle" } | { kind: "busy" } | { kind: "error"; text: string } | { kind: "sent"; email: string };
 
@@ -48,7 +49,7 @@ export const LoginPage = () => {
       subtitle="Sign in to see which patients need you today."
       footer={
         <>
-          New to Revenue Recovery?{" "}
+          New to {BRAND}?{" "}
           <Link href="/signup" className="font-semibold text-rr-on-canvas underline-offset-4 hover:underline">
             Create an account
           </Link>

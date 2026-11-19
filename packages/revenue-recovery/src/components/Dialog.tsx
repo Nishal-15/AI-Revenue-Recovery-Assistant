@@ -40,7 +40,7 @@ export const Dialog = ({ open, onClose, title, description, children, submitLabe
       onClose={onClose}
       onClick={(event) => event.target === ref.current && onClose()}
       className={cx(
-        "m-auto max-h-[92vh] w-[calc(100%-2rem)] overflow-hidden rounded-rr-card bg-rr-surface p-0 text-rr-ink shadow-[0_40px_90px_-20px_rgb(0_0_0/0.55)]",
+        "m-auto max-h-[92vh] w-[calc(100%-2rem)] overflow-hidden rounded-rr-card bg-rr-surface p-0 text-rr-ink shadow-rr-lift",
         "backdrop:bg-[rgb(8_26_29/0.72)] backdrop:backdrop-blur-sm",
         wide ? "max-w-2xl" : "max-w-lg",
       )}

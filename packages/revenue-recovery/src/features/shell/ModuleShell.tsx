@@ -35,7 +35,7 @@ export const ModuleShell = ({ section, onSectionChange }: ModuleShellProps) => {
             type="button"
             onClick={() => onSectionChange("messages")}
             aria-label={badges.messages > 0 ? `Messages: ${badges.messages} waiting` : "Messages"}
-            className="relative grid size-11 place-items-center rounded-full border border-rr-canvas-line bg-white/5 text-rr-on-canvas transition-colors hover:bg-white/10"
+            className="relative grid size-11 place-items-center rounded-full border border-rr-canvas-line bg-rr-glass text-rr-on-canvas transition-colors hover:bg-rr-glass-strong"
           >
             <Bell size={18} aria-hidden />
             {badges.messages > 0 && (
@@ -48,7 +48,7 @@ export const ModuleShell = ({ section, onSectionChange }: ModuleShellProps) => {
             <button
               type="button"
               onClick={() => onSectionChange("messages")}
-              className="flex h-11 items-center gap-2 rounded-full bg-rr-surface px-5 font-semibold text-rr-ink transition-colors hover:bg-white"
+              className="flex h-11 items-center gap-2 rounded-full bg-rr-cta px-5 font-semibold text-rr-on-cta transition-colors hover:bg-rr-cta-hover"
             >
               <Send size={16} aria-hidden />
               Check {badges.approvals} {badges.approvals === 1 ? "reminder" : "reminders"}
@@ -71,8 +71,8 @@ export const ModuleShell = ({ section, onSectionChange }: ModuleShellProps) => {
               className={cx(
                 "flex h-11 shrink-0 items-center gap-2 rounded-full px-5 transition-colors",
                 active
-                  ? "bg-rr-surface font-semibold text-rr-ink"
-                  : "border border-rr-canvas-line bg-white/5 text-rr-on-canvas hover:bg-white/10",
+                  ? "bg-rr-cta font-semibold text-rr-on-cta"
+                  : "border border-rr-canvas-line bg-rr-glass text-rr-on-canvas hover:bg-rr-glass-strong",
               )}
             >
               <Icon size={17} aria-hidden />
@@ -81,7 +81,7 @@ export const ModuleShell = ({ section, onSectionChange }: ModuleShellProps) => {
                 <span
                   className={cx(
                     "grid h-5 min-w-5 place-items-center rounded-full px-1.5 text-xs font-bold",
-                    active ? "bg-rr-ink text-rr-on-canvas" : "bg-rr-missed text-rr-ink",
+                    active ? "bg-rr-ink text-rr-surface" : "bg-rr-missed text-rr-ink",
                   )}
                   aria-label={`${badge} waiting`}
                 >

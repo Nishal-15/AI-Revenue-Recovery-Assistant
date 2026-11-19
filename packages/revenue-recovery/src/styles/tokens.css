@@ -6,6 +6,13 @@
   --color-rr-canvas-line: rgb(232 241 238 / 0.12);
   --color-rr-on-canvas: #e9f2ef;
   --color-rr-on-canvas-soft: #a8c2bd;
+  /* Translucent panels on the canvas ("glass"), and their hover state. */
+  --color-rr-glass: rgb(255 255 255 / 0.05);
+  --color-rr-glass-strong: rgb(255 255 255 / 0.1);
+  /* The main call to action on the canvas: a bright pill on dark, solid teal on light. */
+  --color-rr-cta: #f0f5f2;
+  --color-rr-cta-hover: #ffffff;
+  --color-rr-on-cta: #10343a;
 
   /* Cards: mint cream, with a slightly deeper mint for insets inside them. */
   --color-rr-surface: #f0f5f2;
@@ -45,4 +52,26 @@
   --radius-rr-card: 1.5rem;
   --shadow-rr-card: 0 1px 0 rgb(255 255 255 / 0.04), 0 12px 32px -18px rgb(0 0 0 / 0.45);
   --shadow-rr-lift: 0 24px 48px -20px rgb(0 0 0 / 0.55);
+}
+
+/*
+ * Light theme: the same brand on a pale mint canvas. Only the canvas family and shadows change;
+ * cards, ink and meaning colours stay, so every screen keeps its contrast.
+ * Set with <html data-theme="light">.
+ */
+:root[data-theme="light"] {
+  --color-rr-canvas: #e7efeb;
+  --color-rr-canvas-raised: #f6faf8;
+  --color-rr-canvas-line: rgb(16 52 58 / 0.12);
+  --color-rr-on-canvas: #10343a;
+  --color-rr-on-canvas-soft: #4a676b;
+  --color-rr-glass: rgb(255 255 255 / 0.62);
+  --color-rr-glass-strong: rgb(255 255 255 / 0.95);
+  --color-rr-cta: #23746b;
+  --color-rr-cta-hover: #185a53;
+  --color-rr-on-cta: #ffffff;
+  --color-rr-surface: #ffffff;
+  --color-rr-bg: #edf3f0;
+  --shadow-rr-card: 0 1px 2px rgb(16 52 58 / 0.05), 0 12px 32px -20px rgb(16 52 58 / 0.25);
+  --shadow-rr-lift: 0 24px 48px -24px rgb(16 52 58 / 0.3);
 }

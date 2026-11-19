@@ -148,7 +148,7 @@ export const ConfirmationsPage = () => {
             </div>
           </div>
         </section>
-        <div className="grid grid-cols-2 divide-x divide-rr-canvas-line rounded-rr-card border border-rr-canvas-line bg-white/5 py-5 text-rr-on-canvas">
+        <div className="grid grid-cols-2 divide-x divide-rr-canvas-line rounded-rr-card border border-rr-canvas-line bg-rr-glass py-5 text-rr-on-canvas">
           <div className="px-5">
             <p className="rr-tabular text-4xl font-light">{String(dueSoon).padStart(2, "0")}</p>
             <p className="mt-1 text-rr-on-canvas-soft">Due soon, not confirmed</p>
@@ -188,7 +188,7 @@ const DayButton = ({
     onClick={onClick}
     className={cx(
       "flex min-w-20 shrink-0 flex-col items-center gap-0.5 rounded-2xl px-4 py-3 transition-colors",
-      active ? "bg-rr-surface text-rr-ink" : "border border-rr-canvas-line bg-white/5 text-rr-on-canvas hover:bg-white/10",
+      active ? "bg-rr-surface text-rr-ink" : "border border-rr-canvas-line bg-rr-glass text-rr-on-canvas hover:bg-rr-glass-strong",
     )}
   >
     <span className={cx("text-sm", active ? "text-rr-ink-soft" : "text-rr-on-canvas-soft")}>{top}</span>

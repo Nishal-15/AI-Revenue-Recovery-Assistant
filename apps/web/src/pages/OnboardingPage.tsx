@@ -38,7 +38,7 @@ export const OnboardingPage = () => {
         </div>
       )}
       <CreateClinicForm defaultOwnerName={metaName} onCreated={() => navigate("/app")} />
-      <div className="mt-8 rounded-3xl border border-rr-canvas-line bg-white/[0.04] p-5">
+      <div className="mt-8 rounded-3xl border border-rr-canvas-line bg-rr-glass p-5">
         <p className="flex items-center gap-2 font-semibold">
           <UsersRound size={18} aria-hidden /> Joining an existing clinic?
         </p>

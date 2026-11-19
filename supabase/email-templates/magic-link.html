@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Your sign-in link</title>
+</head>
+<body style="margin:0;padding:0;background:#e7efeb;font-family:Manrope,Segoe UI,Helvetica,Arial,sans-serif;color:#10343a;">
+<div style="display:none;max-height:0;overflow:hidden;">Sign in to your clinic without a password.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#e7efeb;padding:32px 16px;">
+  <tr><td align="center">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;">
+      <tr><td style="background:#0f2c31;border-radius:24px 24px 0 0;padding:28px 32px;">
+        <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+          <td style="width:36px;height:36px;border-radius:18px;background:#f0f5f2;text-align:center;font-size:18px;line-height:36px;color:#23746b;font-weight:800;">&#8635;</td>
+          <td style="padding-left:12px;color:#e9f2ef;font-size:17px;font-weight:700;">Revenue Recovery</td>
+        </tr></table>
+      </td></tr>
+      <tr><td style="background:#ffffff;border-radius:0 0 24px 24px;padding:36px 32px 32px;">
+        <h1 style="margin:0 0 12px;font-size:26px;line-height:1.25;font-weight:400;color:#10343a;">Your sign-in link</h1>
+        <p style="margin:0 0 28px;font-size:16px;line-height:1.6;color:#3f5f64;">Press the button to sign in to your clinic. No password needed.</p>
+        <table role="presentation" cellpadding="0" cellspacing="0"><tr><td style="border-radius:999px;background:#23746b;">
+          <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:14px 28px;font-size:16px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:999px;">Sign in</a>
+        </td></tr></table>
+        <p style="margin:28px 0 0;font-size:14px;line-height:1.6;color:#67868a;">This link works once and expires in 1 hour. Open it on the device where you asked for it.</p>
+        <p style="margin:16px 0 0;font-size:13px;line-height:1.6;color:#67868a;word-break:break-all;">Button not working? Copy this link into your browser:<br><a href="{{ .ConfirmationURL }}" style="color:#23746b;">{{ .ConfirmationURL }}</a></p>
+      </td></tr>
+      <tr><td style="padding:20px 32px;text-align:center;font-size:12px;line-height:1.6;color:#67868a;">
+        Sent to {{ .Email }} by Revenue Recovery, for dental clinics.<br>If you didn't ask for this, you can ignore this email.
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>

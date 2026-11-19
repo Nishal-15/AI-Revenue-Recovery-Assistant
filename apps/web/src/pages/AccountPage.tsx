@@ -64,7 +64,7 @@ export const AccountPage = () => {
 };
 
 const Panel = ({ icon, title, detail, children }: { icon: ReactNode; title: string; detail: string; children: ReactNode }) => (
-  <section className="grid gap-5 rounded-rr-card border border-rr-canvas-line bg-white/[0.04] p-6 sm:grid-cols-[14rem_minmax(0,1fr)] sm:p-7">
+  <section className="grid gap-5 rounded-rr-card border border-rr-canvas-line bg-rr-glass p-6 sm:grid-cols-[14rem_minmax(0,1fr)] sm:p-7">
     <div>
       <span className="grid size-10 place-items-center rounded-2xl bg-rr-surface text-rr-primary">{icon}</span>
       <h2 className="mt-3 text-xl font-semibold">{title}</h2>

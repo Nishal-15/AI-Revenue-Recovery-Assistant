@@ -70,6 +70,13 @@ One-time Supabase setup:
 3. Authentication -> Emails: Supabase's built-in email sender only allows a few emails an hour. Before real clinics
    sign up, add your own SMTP (for example Resend or Brevo) under Authentication -> Emails -> SMTP Settings.
 
+Look and branding:
+
+- Dark and light themes. Each person picks theirs from the account menu, the sign-in pages or the landing-page
+  footer (or "Same as device"); it is remembered on that device. Dark is the default.
+- `VITE_BRAND_NAME` renames the product everywhere on the website. Set it in `apps/web/.env` and in Cloudflare Pages.
+- Branded sign-up, sign-in, password and invite emails are in `supabase/email-templates/` with paste-in steps.
+
 How people get in:
 
 - A clinic owner opens `/signup`, confirms their email, and creates the clinic on `/onboarding`. Starter WhatsApp

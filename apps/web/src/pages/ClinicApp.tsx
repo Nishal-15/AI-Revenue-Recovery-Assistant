@@ -48,19 +48,19 @@ const SignedInArea = ({ client }: { client: SupabaseClient }) => {
 
 const AppSkeleton = () => (
   <div className="mx-auto flex max-w-[90rem] animate-pulse flex-col gap-6 px-4 pt-8 sm:px-8" aria-busy="true" aria-label="Opening your clinic">
-    <div className="h-12 w-56 rounded-full bg-white/10" />
+    <div className="h-12 w-56 rounded-full bg-rr-glass-strong" />
     <div className="flex gap-2">
       {[0, 1, 2, 3, 4].map((index) => (
-        <div key={index} className="h-11 w-28 rounded-full bg-white/5" />
+        <div key={index} className="h-11 w-28 rounded-full bg-rr-glass" />
       ))}
     </div>
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_400px]">
       <div className="flex flex-col gap-3">
         {[0, 1, 2].map((index) => (
-          <div key={index} className="h-24 rounded-3xl bg-white/5" />
+          <div key={index} className="h-24 rounded-3xl bg-rr-glass" />
         ))}
       </div>
-      <div className="h-80 rounded-3xl bg-white/5" />
+      <div className="h-80 rounded-3xl bg-rr-glass" />
     </div>
   </div>
 );

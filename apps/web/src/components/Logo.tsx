@@ -1,3 +1,5 @@
+import { BRAND } from "../lib/brand";
+
 /** A loop that comes back on itself: a patient returning. */
 export const LogoMark = ({ className = "size-9" }: { className?: string }) => (
   <svg viewBox="0 0 36 36" className={className} aria-hidden>
@@ -17,6 +19,6 @@ export const LogoMark = ({ className = "size-9" }: { className?: string }) => (
 export const Logo = () => (
   <span className="flex items-center gap-2.5">
     <LogoMark />
-    <span className="text-lg font-semibold tracking-tight">Revenue Recovery</span>
+    <span className="text-lg font-semibold tracking-tight">{BRAND}</span>
   </span>
 );

@@ -80,7 +80,7 @@ export const TodayPage = ({ onOpenMessages }: { onOpenMessages: () => void }) =>
           <h2 id="rr-patients" className="text-2xl font-normal text-rr-on-canvas">
             Patients to contact
           </h2>
-          <div role="group" aria-label="Show" className="flex gap-1 rounded-full border border-rr-canvas-line bg-white/5 p-1">
+          <div role="group" aria-label="Show" className="flex gap-1 rounded-full border border-rr-canvas-line bg-rr-glass p-1">
             {(["active", "snoozed", "resolved"] as const).map((option) => (
               <button
                 key={option}
@@ -99,7 +99,7 @@ export const TodayPage = ({ onOpenMessages }: { onOpenMessages: () => void }) =>
         </div>
 
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-          <label className="flex h-11 items-center gap-2 rounded-full border border-rr-canvas-line bg-white/5 px-4 text-rr-on-canvas focus-within:border-rr-recovered lg:w-64">
+          <label className="flex h-11 items-center gap-2 rounded-full border border-rr-canvas-line bg-rr-glass px-4 text-rr-on-canvas focus-within:border-rr-recovered lg:w-64">
             <Search size={17} className="shrink-0 text-rr-on-canvas-soft" aria-hidden />
             <span className="sr-only">Find a patient</span>
             <input
@@ -147,7 +147,7 @@ export const TodayPage = ({ onOpenMessages }: { onOpenMessages: () => void }) =>
             icon={<MessageCircleQuestion size={20} />}
           />
         </div>
-        <div className="grid grid-cols-2 divide-x divide-rr-canvas-line rounded-rr-card border border-rr-canvas-line bg-white/5 py-5">
+        <div className="grid grid-cols-2 divide-x divide-rr-canvas-line rounded-rr-card border border-rr-canvas-line bg-rr-glass py-5">
           <SplitStat value={summary.data?.recoveredBookings ?? 0} label="Booked this month" />
           <SplitStat value={active.filter((item) => item.status === "in_progress").length} label="Working on it" />
         </div>
@@ -278,7 +278,7 @@ const NeedsAttention = ({
                 <p className="font-semibold">{row.title}</p>
                 <p className="text-sm text-rr-on-canvas-soft">{row.detail}</p>
               </div>
-              <span className="rounded-full bg-white/10 px-3 py-1 text-sm">{row.badge}</span>
+              <span className="rounded-full bg-rr-glass-strong px-3 py-1 text-sm">{row.badge}</span>
             </li>
           ))}
         </ul>
@@ -286,7 +286,7 @@ const NeedsAttention = ({
       <button
         type="button"
         onClick={onOpenMessages}
-        className="mt-3 flex h-11 w-full items-center justify-between rounded-full border border-rr-canvas-line px-5 transition-colors hover:bg-white/10"
+        className="mt-3 flex h-11 w-full items-center justify-between rounded-full border border-rr-canvas-line px-5 transition-colors hover:bg-rr-glass-strong"
       >
         Open messages
         <ArrowUpRight size={18} aria-hidden />
@@ -415,7 +415,7 @@ const Chip = ({ active, onClick, dot, children }: { active: boolean; onClick: ()
     onClick={onClick}
     className={cx(
       "inline-flex min-h-9 items-center gap-2 rounded-full px-4 text-sm transition-colors",
-      active ? "bg-rr-surface font-semibold text-rr-ink" : "border border-rr-canvas-line bg-white/5 text-rr-on-canvas hover:bg-white/10",
+      active ? "bg-rr-surface font-semibold text-rr-ink" : "border border-rr-canvas-line bg-rr-glass text-rr-on-canvas hover:bg-rr-glass-strong",
     )}
   >
     {dot && <span className={cx("size-2 rounded-full", dot)} aria-hidden />}
@@ -424,7 +424,7 @@ const Chip = ({ active, onClick, dot, children }: { active: boolean; onClick: ()
 );
 
 const EmptyList = ({ view }: { view: WorklistView }) => (
-  <div className="flex flex-col items-center gap-2 rounded-rr-card border border-rr-canvas-line bg-white/5 px-6 py-12 text-center text-rr-on-canvas">
+  <div className="flex flex-col items-center gap-2 rounded-rr-card border border-rr-canvas-line bg-rr-glass px-6 py-12 text-center text-rr-on-canvas">
     <PartyPopper size={26} className="text-rr-recovered" aria-hidden />
     <p className="text-lg">
       {view === "active" ? "Nobody else is waiting." : view === "snoozed" ? "Nothing set for later." : "Nothing finished in the last 30 days."}

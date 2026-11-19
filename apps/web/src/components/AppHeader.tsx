@@ -3,6 +3,8 @@ import { ChevronDown, LogOut, UserRound } from "lucide-react";
 import { Logo } from "./Logo";
 import { Link, navigate } from "../lib/router";
 import { supabase } from "../lib/supabase";
+import { BRAND } from "../lib/brand";
+import { ThemeToggleRow } from "./ThemeToggle";
 
 const initials = (name: string) =>
   name
@@ -41,7 +43,7 @@ export const AppHeader = ({ clinicName, staffName, email }: { clinicName?: strin
     <header className="sticky top-0 z-20 border-b border-rr-canvas-line bg-rr-canvas/85 backdrop-blur-md">
       <div className="mx-auto flex max-w-[90rem] items-center justify-between gap-4 px-4 py-3 sm:px-8">
         <div className="flex min-w-0 items-center gap-4">
-          <Link href="/app" aria-label="Revenue Recovery, today">
+          <Link href="/app" aria-label={`${BRAND}, today`}>
             <Logo />
           </Link>
           {clinicName && (
@@ -56,18 +58,19 @@ export const AppHeader = ({ clinicName, staffName, email }: { clinicName?: strin
             onClick={() => setOpen((value) => !value)}
             aria-expanded={open}
             aria-haspopup="menu"
-            className="flex h-11 items-center gap-2 rounded-full border border-rr-canvas-line bg-white/5 py-1 pr-3 pl-1 transition-colors hover:bg-white/10"
+            className="flex h-11 items-center gap-2 rounded-full border border-rr-canvas-line bg-rr-glass py-1 pr-3 pl-1 transition-colors hover:bg-rr-glass-strong"
           >
             <span className="grid size-9 place-items-center rounded-full bg-rr-surface text-sm font-bold text-rr-ink">{initials(name)}</span>
             <span className="hidden max-w-40 truncate text-sm font-medium sm:block">{name}</span>
             <ChevronDown size={16} className="text-rr-on-canvas-soft" aria-hidden />
           </button>
           {open && (
-            <div role="menu" className="absolute right-0 mt-2 w-64 overflow-hidden rounded-3xl bg-rr-surface p-2 text-rr-ink shadow-[0_30px_60px_-20px_rgb(0_0_0/0.6)]">
+            <div role="menu" className="absolute right-0 mt-2 w-64 overflow-hidden rounded-3xl bg-rr-surface p-2 text-rr-ink shadow-rr-lift">
               <div className="px-3 py-2.5">
                 <p className="truncate font-semibold">{name}</p>
                 {email && <p className="truncate text-sm text-rr-ink-soft">{email}</p>}
               </div>
+              <ThemeToggleRow />
               <Link
                 href="/account"
                 role="menuitem"

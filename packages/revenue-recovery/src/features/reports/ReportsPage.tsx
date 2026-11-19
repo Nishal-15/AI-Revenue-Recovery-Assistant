@@ -9,6 +9,7 @@ import type { MessageFunnel, RecoveredBooking, ReportPeriod, ReportSummary } fro
 import { BOOKING_RULE_LABELS, PERIOD_LABELS } from "../../domain/reports";
 import { downloadCsv, toCsv } from "../../lib/csv";
 import { formatDate, formatMoney, formatPercent } from "../../lib/format";
+import { QuietBoundary } from "../../components/QuietBoundary";
 
 const PERIODS: ReportPeriod[] = ["this_month", "last_month", "last_90_days"];
 
@@ -58,7 +59,7 @@ const PERIOD_SENTENCE = {
 
 const ReportBody = ({ report, currency, period }: { report: ReportSummary; currency: string; period: ReportPeriod }) => (
   <>
-    <section className="grid grid-cols-1 items-center gap-2 overflow-hidden rounded-rr-card border border-rr-canvas-line bg-white/5 text-rr-on-canvas lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+    <section className="grid grid-cols-1 items-center gap-2 overflow-hidden rounded-rr-card border border-rr-canvas-line bg-rr-glass text-rr-on-canvas lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
       <div className="p-6 sm:p-8">
         <h2 className="text-4xl leading-[1.1] font-light tracking-tight text-balance sm:text-5xl">
           {formatMoney(report.recoveredValue, currency)} came back {PERIOD_SENTENCE[period]}.
@@ -68,9 +69,11 @@ const ReportBody = ({ report, currency, period }: { report: ReportSummary; curre
         </p>
       </div>
       <div className="h-52 lg:h-72" aria-hidden>
-        <Suspense fallback={null}>
-          <RecoveryFlow />
-        </Suspense>
+        <QuietBoundary>
+          <Suspense fallback={null}>
+            <RecoveryFlow />
+          </Suspense>
+        </QuietBoundary>
       </div>
     </section>
 

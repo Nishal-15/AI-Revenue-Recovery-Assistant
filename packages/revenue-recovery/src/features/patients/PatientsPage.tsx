@@ -92,7 +92,7 @@ export const PatientsPage = () => {
           <button
             type="button"
             onClick={() => setDialog("add")}
-            className="flex h-11 items-center gap-2 rounded-full bg-rr-surface px-5 font-semibold text-rr-ink transition-colors hover:bg-white"
+            className="flex h-11 items-center gap-2 rounded-full bg-rr-cta px-5 font-semibold text-rr-on-cta transition-colors hover:bg-rr-cta-hover"
           >
             <UserPlus size={17} aria-hidden /> Add patient
           </button>
@@ -104,7 +104,7 @@ export const PatientsPage = () => {
       ) : (
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
           <section aria-label="Patients" className={cx("flex min-w-0 flex-col gap-3", selected && "hidden xl:flex")}>
-            <label className="flex h-11 items-center gap-2 rounded-full border border-rr-canvas-line bg-white/5 px-4 text-rr-on-canvas focus-within:border-rr-recovered">
+            <label className="flex h-11 items-center gap-2 rounded-full border border-rr-canvas-line bg-rr-glass px-4 text-rr-on-canvas focus-within:border-rr-recovered">
               <Search size={17} className="shrink-0 text-rr-on-canvas-soft" aria-hidden />
               <span className="sr-only">Find a patient</span>
               <input
@@ -162,7 +162,7 @@ const GlassButton = ({ onClick, icon, children }: { onClick: () => void; icon: R
   <button
     type="button"
     onClick={onClick}
-    className="flex h-11 items-center gap-2 rounded-full border border-rr-canvas-line bg-white/5 px-5 text-rr-on-canvas transition-colors hover:bg-white/10"
+    className="flex h-11 items-center gap-2 rounded-full border border-rr-canvas-line bg-rr-glass px-5 text-rr-on-canvas transition-colors hover:bg-rr-glass-strong"
   >
     {icon}
     {children}
@@ -170,16 +170,16 @@ const GlassButton = ({ onClick, icon, children }: { onClick: () => void; icon: R
 );
 
 const FirstPatient = ({ onAdd }: { onAdd: () => void }) => (
-  <div className="grid place-items-center rounded-rr-card border border-rr-canvas-line bg-white/5 px-6 py-16 text-center">
+  <div className="grid place-items-center rounded-rr-card border border-rr-canvas-line bg-rr-glass px-6 py-16 text-center">
     <span className="grid size-14 place-items-center rounded-2xl bg-rr-surface text-rr-primary">
       <UserPlus size={24} aria-hidden />
     </span>
     <h2 className="mt-5 text-2xl font-normal">No patients yet</h2>
     <p className="mt-2 max-w-md text-rr-on-canvas-soft">
-      Add a patient with their next appointment or planned treatment. Revenue Recovery then watches it and reminds them
+      Add a patient with their next appointment or planned treatment. We then watch it and remind them
       for you.
     </p>
-    <button type="button" onClick={onAdd} className="mt-6 h-11 rounded-full bg-rr-surface px-6 font-semibold text-rr-ink hover:bg-white">
+    <button type="button" onClick={onAdd} className="mt-6 h-11 rounded-full bg-rr-cta px-6 font-semibold text-rr-on-cta hover:bg-rr-cta-hover">
       Add your first patient
     </button>
   </div>
@@ -195,7 +195,7 @@ const PatientRow = ({ patient, active, onOpen }: { patient: Patient; active: boo
       aria-current={active ? "true" : undefined}
       className={cx(
         "flex w-full items-center gap-4 rounded-3xl p-3.5 text-left transition-colors",
-        active ? "bg-rr-surface text-rr-ink" : "border border-rr-canvas-line bg-white/5 hover:bg-white/10",
+        active ? "bg-rr-surface text-rr-ink" : "border border-rr-canvas-line bg-rr-glass hover:bg-rr-glass-strong",
       )}
     >
       <Avatar name={patient.fullName} />

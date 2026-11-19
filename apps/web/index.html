@@ -13,6 +13,15 @@
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@300..800&display=swap"
       rel="stylesheet"
     />
+    <script>
+      // Apply the saved colour theme before the first paint, so the page never flashes the wrong colours.
+      (function () {
+        var choice = "dark";
+        try { choice = localStorage.getItem("rr-theme") || "dark"; } catch (e) {}
+        var theme = choice === "system" ? (matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark") : choice;
+        document.documentElement.dataset.theme = theme === "light" ? "light" : "dark";
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
