@@ -84,6 +84,10 @@ export const friendlyAuthError = (message: string): string => {
     return "Email sign-in is switched off in Supabase. Turn on Authentication → Sign In / Providers → Email.";
   if (lower.includes("error sending") || lower.includes("sending confirmation") || lower.includes("sending magic link") || lower.includes("sending recovery"))
     return "Supabase couldn't send the email. Without your own email sender it only sends a few emails an hour, and only to members of your Supabase team. Set up SMTP under Authentication → Emails.";
+  if (lower.includes("email address") && lower.includes("invalid"))
+    return "Supabase won't accept this email address. Use a real email you can open (made-up or test addresses are rejected).";
+  if (lower.includes("not authorized") || lower.includes("email_address_not_authorized"))
+    return "Supabase can only email members of your Supabase team until you add your own email sender (Authentication → Emails → SMTP). Use the email you log in to Supabase with, or set up SMTP.";
   if (lower.includes("invalid login")) return "That email and password don't match. Check them and try again.";
   if (lower.includes("email not confirmed")) return "Please confirm your email first. Open the link we sent you.";
   if (lower.includes("already registered") || lower.includes("already been registered"))
