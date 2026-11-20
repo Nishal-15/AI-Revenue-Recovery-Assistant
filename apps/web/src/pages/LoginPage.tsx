@@ -1,10 +1,10 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Eye, EyeOff, Mail } from "lucide-react";
-import { AUTH_INPUT, AuthField, AuthLayout, NotConfigured, Notice, PRIMARY_BUTTON, SECONDARY_BUTTON } from "../components/AuthLayout";
+import { ArrowRight, Eye, EyeOff, Mail } from "lucide-react";
+import { AUTH_INPUT, AuthField, AuthLayout, NotConfigured, Notice, OrDivider, PRIMARY_BUTTON, SECONDARY_BUTTON } from "../components/AuthLayout";
+import { SocialSignIn } from "../components/SocialSignIn";
 import { Link, navigate } from "../lib/router";
 import { friendlyAuthError } from "../lib/session";
 import { supabase } from "../lib/supabase";
-import { BRAND } from "../lib/brand";
 
 type Status = { kind: "idle" } | { kind: "busy" } | { kind: "error"; text: string } | { kind: "sent"; email: string };
 
@@ -31,7 +31,7 @@ export const LoginPage = () => {
 
   const sendLink = async () => {
     if (!supabase) return;
-    if (!email.trim()) return setStatus({ kind: "error", text: "Type your email first, then press the link button." });
+    if (!email.trim()) return setStatus({ kind: "error", text: "Type your email first, then ask for the link." });
     setStatus({ kind: "busy" });
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
@@ -44,18 +44,7 @@ export const LoginPage = () => {
   const busy = status.kind === "busy";
 
   return (
-    <AuthLayout
-      title="Welcome back"
-      subtitle="Sign in to see which patients need you today."
-      footer={
-        <>
-          New to {BRAND}?{" "}
-          <Link href="/signup" className="font-semibold text-rr-on-canvas underline-offset-4 hover:underline">
-            Create an account
-          </Link>
-        </>
-      }
-    >
+    <AuthLayout tab="login" title="Welcome back" subtitle="Sign in to see which patients need you today.">
       {!supabase ? (
         <NotConfigured />
       ) : status.kind === "sent" ? (
@@ -71,50 +60,64 @@ export const LoginPage = () => {
           </button>
         </div>
       ) : (
-        <form className="flex flex-col gap-5" onSubmit={signIn}>
-          <AuthField label="Email">
-            <input type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className={AUTH_INPUT} />
-          </AuthField>
-          <AuthField
-            label="Password"
-            aside={
-              <Link href="/forgot-password" className="text-sm font-normal text-rr-on-canvas-soft hover:text-rr-on-canvas">
-                Forgot password?
-              </Link>
-            }
-          >
-            <span className="relative">
+        <>
+          <SocialSignIn />
+          <OrDivider />
+          <form className="flex flex-col gap-4" onSubmit={signIn}>
+            <AuthField label="Email">
               <input
-                type={showPassword ? "text" : "password"}
+                type="email"
                 required
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className={`${AUTH_INPUT} pr-12`}
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@clinic.com"
+                className={AUTH_INPUT}
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword((value) => !value)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-                className="absolute top-1/2 right-2 grid size-9 -translate-y-1/2 place-items-center rounded-full text-rr-on-canvas-soft hover:text-rr-on-canvas"
-              >
-                {showPassword ? <EyeOff size={18} aria-hidden /> : <Eye size={18} aria-hidden />}
-              </button>
-            </span>
-          </AuthField>
+            </AuthField>
+            <AuthField
+              label="Password"
+              aside={
+                <Link href="/forgot-password" className="text-sm font-normal text-rr-on-canvas-soft hover:text-rr-on-canvas">
+                  Forgot?
+                </Link>
+              }
+            >
+              <span className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={`${AUTH_INPUT} pr-12`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((value) => !value)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                  className="absolute top-1/2 right-2 grid size-9 -translate-y-1/2 place-items-center rounded-full text-rr-on-canvas-soft hover:text-rr-on-canvas"
+                >
+                  {showPassword ? <EyeOff size={18} aria-hidden /> : <Eye size={18} aria-hidden />}
+                </button>
+              </span>
+            </AuthField>
 
-          {status.kind === "error" && <Notice tone="error">{status.text}</Notice>}
+            {status.kind === "error" && <Notice tone="error">{status.text}</Notice>}
 
-          <button type="submit" disabled={busy} className={`${PRIMARY_BUTTON} mt-1`}>
-            {busy ? "Signing in…" : "Sign in"}
-          </button>
-          <div className="flex items-center gap-3 text-sm text-rr-on-canvas-soft" aria-hidden>
-            <span className="h-px flex-1 bg-rr-canvas-line" /> or <span className="h-px flex-1 bg-rr-canvas-line" />
-          </div>
-          <button type="button" disabled={busy} onClick={sendLink} className={SECONDARY_BUTTON}>
-            <Mail size={17} aria-hidden /> Email me a sign-in link
-          </button>
-        </form>
+            <button type="submit" disabled={busy} className={`${PRIMARY_BUTTON} mt-2`}>
+              {busy ? "Signing in…" : "Sign in"} {!busy && <ArrowRight size={18} aria-hidden />}
+            </button>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={sendLink}
+              className="mx-auto flex items-center gap-1.5 text-sm text-rr-on-canvas-soft underline-offset-4 hover:text-rr-on-canvas hover:underline disabled:opacity-60"
+            >
+              <Mail size={15} aria-hidden /> Email me a sign-in link instead
+            </button>
+          </form>
+        </>
       )}
     </AuthLayout>
   );

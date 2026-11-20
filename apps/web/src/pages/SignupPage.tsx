@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
-import { MailCheck } from "lucide-react";
-import { AUTH_INPUT, AuthField, AuthLayout, NotConfigured, Notice, PRIMARY_BUTTON } from "../components/AuthLayout";
+import { ArrowRight, MailCheck } from "lucide-react";
+import { AUTH_INPUT, AuthField, AuthLayout, NotConfigured, Notice, OrDivider, PRIMARY_BUTTON } from "../components/AuthLayout";
+import { SocialSignIn } from "../components/SocialSignIn";
 import { Link, navigate } from "../lib/router";
 import { friendlyAuthError } from "../lib/session";
 import { supabase } from "../lib/supabase";
@@ -8,6 +9,18 @@ import { supabase } from "../lib/supabase";
 type Status = { kind: "idle" } | { kind: "busy" } | { kind: "error"; text: string } | { kind: "confirm"; email: string };
 
 const MIN_PASSWORD = 8;
+
+const TermsLinks = () => (
+  <>
+    <Link href="/terms" className="text-rr-on-canvas underline underline-offset-4">
+      terms
+    </Link>{" "}
+    and{" "}
+    <Link href="/privacy" className="text-rr-on-canvas underline underline-offset-4">
+      privacy policy
+    </Link>
+  </>
+);
 
 export const SignupPage = () => {
   const [form, setForm] = useState({ fullName: "", email: "", password: "", agreed: false });
@@ -55,69 +68,74 @@ export const SignupPage = () => {
 
   return (
     <AuthLayout
+      tab="signup"
       title="Create your account"
       subtitle="Set up your clinic in two minutes. No card needed."
-      footer={
-        <>
-          Already have an account?{" "}
-          <Link href="/login" className="font-semibold text-rr-on-canvas underline-offset-4 hover:underline">
-            Sign in
-          </Link>
-        </>
-      }
+      footer="Joining your clinic's team? Create your account, then ask the clinic owner to add your email."
     >
       {!supabase ? (
         <NotConfigured />
       ) : (
-        <form className="flex flex-col gap-5" onSubmit={submit}>
-          <AuthField label="Your name">
-            <input required autoComplete="name" value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} placeholder="Dr Anjali Rao" className={AUTH_INPUT} />
-          </AuthField>
-          <AuthField label="Work email">
-            <input type="email" required autoComplete="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className={AUTH_INPUT} />
-          </AuthField>
-          <AuthField label="Password">
-            <input
-              type="password"
-              required
-              minLength={MIN_PASSWORD}
-              autoComplete="new-password"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              placeholder={`At least ${MIN_PASSWORD} characters`}
-              className={AUTH_INPUT}
-            />
-          </AuthField>
-          <PasswordMeter password={form.password} />
-          <label className="flex cursor-pointer items-start gap-3 text-rr-on-canvas-soft">
-            <input
-              type="checkbox"
-              checked={form.agreed}
-              onChange={(e) => setForm({ ...form, agreed: e.target.checked })}
-              className="mt-1 size-4 shrink-0 accent-[var(--color-rr-recovered)]"
-            />
-            <span>
-              I agree to the{" "}
-              <Link href="/terms" className="text-rr-on-canvas underline underline-offset-4">
-                terms
-              </Link>{" "}
-              and{" "}
-              <Link href="/privacy" className="text-rr-on-canvas underline underline-offset-4">
-                privacy policy
-              </Link>
-              .
-            </span>
-          </label>
-
-          {status.kind === "error" && <Notice tone="error">{status.text}</Notice>}
-
-          <button type="submit" disabled={busy} className={`${PRIMARY_BUTTON} mt-1`}>
-            {busy ? "Creating your account…" : "Create account"}
-          </button>
-          <p className="text-center text-sm text-rr-on-canvas-soft">
-            Joining your clinic&apos;s team? Create your account here, then ask the clinic owner to add your email.
+        <>
+          <SocialSignIn />
+          <p className="mt-3 text-center text-xs text-rr-on-canvas-soft">
+            Continuing with Google or Apple means you agree to the <TermsLinks />.
           </p>
-        </form>
+          <OrDivider />
+          <form className="flex flex-col gap-4" onSubmit={submit}>
+            <AuthField label="Your name">
+              <input
+                required
+                autoComplete="name"
+                value={form.fullName}
+                onChange={(e) => setForm({ ...form, fullName: e.target.value })}
+                placeholder="Dr Anjali Rao"
+                className={AUTH_INPUT}
+              />
+            </AuthField>
+            <AuthField label="Work email">
+              <input
+                type="email"
+                required
+                autoComplete="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                placeholder="you@clinic.com"
+                className={AUTH_INPUT}
+              />
+            </AuthField>
+            <AuthField label="Password">
+              <input
+                type="password"
+                required
+                minLength={MIN_PASSWORD}
+                autoComplete="new-password"
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                placeholder={`At least ${MIN_PASSWORD} characters`}
+                className={AUTH_INPUT}
+              />
+            </AuthField>
+            <PasswordMeter password={form.password} />
+            <label className="flex cursor-pointer items-start gap-3 text-sm text-rr-on-canvas-soft">
+              <input
+                type="checkbox"
+                checked={form.agreed}
+                onChange={(e) => setForm({ ...form, agreed: e.target.checked })}
+                className="mt-0.5 size-4 shrink-0 accent-[var(--color-rr-recovered)]"
+              />
+              <span>
+                I agree to the <TermsLinks />.
+              </span>
+            </label>
+
+            {status.kind === "error" && <Notice tone="error">{status.text}</Notice>}
+
+            <button type="submit" disabled={busy} className={`${PRIMARY_BUTTON} mt-2`}>
+              {busy ? "Creating your account…" : "Create account"} {!busy && <ArrowRight size={18} aria-hidden />}
+            </button>
+          </form>
+        </>
       )}
     </AuthLayout>
   );
@@ -129,7 +147,7 @@ const PasswordMeter = ({ password }: { password: string }) => {
   const label = ["Too short", "Okay", "Good", "Strong", "Very strong"][score];
   const colour = score <= 1 ? "bg-rr-missed" : score === 2 ? "bg-rr-risk" : "bg-rr-recovered";
   return (
-    <div className="-mt-2 flex items-center gap-3" aria-live="polite">
+    <div className="-mt-1 flex items-center gap-3" aria-live="polite">
       <div className="flex flex-1 gap-1.5" aria-hidden>
         {[0, 1, 2, 3].map((index) => (
           <span key={index} className={`h-1.5 flex-1 rounded-full ${index < score ? colour : "bg-rr-glass-strong"}`} />

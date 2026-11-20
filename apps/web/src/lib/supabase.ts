@@ -30,3 +30,18 @@ export const connectionProblem: ConnectionProblem = findProblem();
 /** Null until apps/web/.env is complete and safe; the sign-in pages then explain exactly what to fix. */
 export const supabase: SupabaseClient | null =
   connectionProblem === null ? createClient(url.replace(/\/+$/, ""), key, { auth: { persistSession: true } }) : null;
+
+/** Which sign-in methods are switched on in Supabase (Authentication → Sign In / Providers). Cached per page load. */
+let providerSettings: Promise<Record<string, boolean>> | null = null;
+
+export const enabledProviders = (): Promise<Record<string, boolean>> => {
+  if (connectionProblem !== null) return Promise.resolve({});
+  providerSettings ??= fetch(`${url.replace(/\/+$/, "")}/auth/v1/settings`, { headers: { apikey: key } })
+    .then((response) => (response.ok ? response.json() : { external: {} }))
+    .then((settings: { external?: Record<string, boolean> }) => settings.external ?? {})
+    .catch(() => {
+      providerSettings = null; // try again next time rather than remembering a network hiccup
+      return {};
+    });
+  return providerSettings;
+};

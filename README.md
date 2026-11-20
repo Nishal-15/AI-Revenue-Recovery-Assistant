@@ -81,6 +81,15 @@ Look and branding:
   skipped with any click or key, and never shown to people whose device asks for reduced motion).
 - Branded sign-up, sign-in, password and invite emails are in `supabase/email-templates/` with paste-in steps.
 
+Google and Apple sign-in (optional; the buttons explain what to do until each is switched on):
+
+- Google: in Google Cloud Console create an OAuth client (type "Web application") and add
+  `https://<project-ref>.supabase.co/auth/v1/callback` as an authorised redirect URI. Paste the Client ID and
+  Client Secret into Supabase -> Authentication -> Sign In / Providers -> Google and turn it on.
+- Apple: needs a paid Apple Developer account. Create a Services ID and a Sign in with Apple key, use the same
+  Supabase callback URL, then fill in Supabase -> Authentication -> Sign In / Providers -> Apple.
+- New people who continue with Google or Apple land on clinic setup, exactly like an email sign-up.
+
 How people get in:
 
 - A clinic owner opens `/signup`, confirms their email, and creates the clinic on `/onboarding`. Starter WhatsApp
