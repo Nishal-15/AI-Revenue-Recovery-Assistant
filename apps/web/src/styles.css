@@ -71,7 +71,7 @@ body {
   mask-size: 220% 100%;
   -webkit-mask-position: 100% 0;
   mask-position: 100% 0;
-  animation: rr-sign 1.5s cubic-bezier(0.55, 0.1, 0.35, 1) 250ms forwards;
+  animation: rr-sign 1.9s cubic-bezier(0.55, 0.1, 0.35, 1) 250ms forwards;
 }
 @keyframes rr-sign {
   to {
@@ -82,7 +82,7 @@ body {
 .rr-flourish {
   stroke-dasharray: 340;
   stroke-dashoffset: 340;
-  animation: rr-flourish 700ms ease-out 1.3s forwards;
+  animation: rr-flourish 900ms ease-out 1.7s forwards;
 }
 @keyframes rr-flourish {
   to {

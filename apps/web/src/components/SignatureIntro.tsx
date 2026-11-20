@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { LogoMark } from "./Logo";
 import { BRAND, LOGO_URL } from "../lib/brand";
 
-const TOTAL_MS = 3000;
+const TOTAL_MS = 3500;
 const FADE_MS = 450;
 
 const greeting = (): string => {
@@ -32,7 +32,7 @@ type SignatureIntroProps = { clinicId: string; clinicName: string; staffName: st
 
 /**
  * The clinic's name, written out like a signature: the ink appears left to right, a flourish underlines it,
- * then a greeting. About three seconds; any click or key skips it.
+ * then a greeting. About three and a half seconds; any click or key skips it.
  */
 export const SignatureIntro = ({ clinicId, clinicName, staffName, onDone }: SignatureIntroProps) => {
   const [phase, setPhase] = useState<"waiting" | "writing" | "leaving">("waiting");
@@ -99,11 +99,11 @@ export const SignatureIntro = ({ clinicId, clinicName, staffName, onDone }: Sign
             />
           </svg>
           {name && (
-            <p className="rr-intro-fade mt-6 text-xl font-light text-rr-on-canvas-soft" style={{ animationDelay: "1700ms" }}>
+            <p className="rr-intro-fade mt-6 text-xl font-light text-rr-on-canvas-soft" style={{ animationDelay: "2100ms" }}>
               {greeting()}, {name}.
             </p>
           )}
-          <p className="rr-intro-fade mt-10 text-xs text-rr-on-canvas-soft/70" style={{ animationDelay: "2000ms" }}>
+          <p className="rr-intro-fade mt-10 text-xs text-rr-on-canvas-soft/70" style={{ animationDelay: "2450ms" }}>
             {BRAND} · tap or click to skip
           </p>
         </div>
