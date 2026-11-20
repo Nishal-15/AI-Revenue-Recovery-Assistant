@@ -1,37 +1,23 @@
 import type { ReactNode } from "react";
-import { Check, Sparkles } from "lucide-react";
 import { Logo } from "./Logo";
 import { Link } from "../lib/router";
 import { connectionProblem, type ConnectionProblem } from "../lib/supabase";
 import { BRAND } from "../lib/brand";
 import { ThemeToggle } from "./ThemeToggle";
+import { ReturnOrbit } from "./ReturnOrbit";
 
 type AuthLayoutProps = { title: string; subtitle?: string; children: ReactNode; footer?: ReactNode };
 
-/** Two halves: a calm brand panel that shows what the product does, and the form. */
+/** Two halves: a calm animated brand panel, and the form. */
 export const AuthLayout = ({ title, subtitle, children, footer }: AuthLayoutProps) => (
   <div className="grid min-h-screen lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
     <aside className="relative hidden overflow-hidden border-r border-rr-canvas-line bg-[radial-gradient(50rem_35rem_at_20%_0%,rgb(79_165_138/0.28),transparent_60%),radial-gradient(40rem_30rem_at_100%_100%,rgb(228_141_163/0.12),transparent_60%)] p-12 lg:flex lg:flex-col">
       <Link href="/" aria-label={`${BRAND} home`}>
         <Logo />
       </Link>
-      <div className="my-auto max-w-md">
-        <p className="text-4xl leading-tight font-light tracking-tight text-balance">
-          Every patient who slipped away, found and gently brought back.
-        </p>
-        <div className="mt-10 flex flex-col gap-3">
-          <PreviewCard tone="bg-rr-risk" title="Ananya hasn't confirmed" detail="Implant consultation · Friday 10:30" badge="Reminder sent" />
-          <PreviewCard tone="bg-rr-recovered" title="Rahul booked his crown" detail="Came back after a reminder" badge="Won back" />
-          <PreviewCard tone="bg-rr-missed" title="Meera asked about aligners" detail="Reply suggested, waiting for you" badge="New" />
-        </div>
+      <div className="my-auto flex w-full justify-center py-10">
+        <ReturnOrbit />
       </div>
-      <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-rr-on-canvas-soft">
-        {["WhatsApp reminders", "No messages at night", "Patients can reply STOP"].map((line) => (
-          <li key={line} className="flex items-center gap-1.5">
-            <Check size={15} className="text-rr-recovered" aria-hidden /> {line}
-          </li>
-        ))}
-      </ul>
     </aside>
 
     <main className="flex flex-col px-5 py-6 sm:px-10">
@@ -61,20 +47,6 @@ export const AuthLayout = ({ title, subtitle, children, footer }: AuthLayoutProp
         </p>
       </div>
     </main>
-  </div>
-);
-
-const PreviewCard = ({ tone, title, detail, badge }: { tone: string; title: string; detail: string; badge: string }) => (
-  <div className="flex items-center gap-4 rounded-3xl border border-rr-canvas-line bg-rr-glass p-4 backdrop-blur-sm">
-    <span className={`size-2.5 shrink-0 rounded-full ${tone}`} aria-hidden />
-    <div className="min-w-0 flex-1">
-      <p className="font-semibold">{title}</p>
-      <p className="text-sm text-rr-on-canvas-soft">{detail}</p>
-    </div>
-    <span className="flex items-center gap-1 rounded-full bg-rr-surface px-3 py-1 text-xs font-semibold text-rr-ink">
-      {badge === "Won back" && <Sparkles size={12} aria-hidden />}
-      {badge}
-    </span>
   </div>
 );
 
