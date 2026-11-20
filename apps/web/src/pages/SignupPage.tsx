@@ -23,14 +23,13 @@ const TermsLinks = () => (
 );
 
 export const SignupPage = () => {
-  const [form, setForm] = useState({ fullName: "", email: "", password: "", agreed: false });
+  const [form, setForm] = useState({ fullName: "", email: "", password: "" });
   const [status, setStatus] = useState<Status>({ kind: "idle" });
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     if (!supabase) return;
     if (form.password.length < MIN_PASSWORD) return setStatus({ kind: "error", text: `Please use at least ${MIN_PASSWORD} characters for the password.` });
-    if (!form.agreed) return setStatus({ kind: "error", text: "Please accept the terms and privacy policy to continue." });
     setStatus({ kind: "busy" });
     const { data, error } = await supabase.auth.signUp({
       email: form.email.trim(),
@@ -71,18 +70,16 @@ export const SignupPage = () => {
       tab="signup"
       title="Create your account"
       subtitle="Set up your clinic in two minutes. No card needed."
-      footer="Joining your clinic's team? Create your account, then ask the clinic owner to add your email."
+      footer="Joining a clinic's team? Sign up, then ask the owner to add your email."
     >
       {!supabase ? (
         <NotConfigured />
       ) : (
         <>
           <SocialSignIn />
-          <p className="mt-3 text-center text-xs text-rr-on-canvas-soft">
-            Continuing with Google or Apple means you agree to the <TermsLinks />.
-          </p>
           <OrDivider />
-          <form className="flex flex-col gap-4" onSubmit={submit}>
+          <form className="flex flex-col gap-3.5" onSubmit={submit}>
+            <div className="grid gap-3.5 sm:grid-cols-2">
             <AuthField label="Your name">
               <input
                 required
@@ -104,7 +101,8 @@ export const SignupPage = () => {
                 className={AUTH_INPUT}
               />
             </AuthField>
-            <AuthField label="Password">
+            </div>
+            <AuthField label="Password" aside={<PasswordStrength password={form.password} />}>
               <input
                 type="password"
                 required
@@ -116,24 +114,15 @@ export const SignupPage = () => {
                 className={AUTH_INPUT}
               />
             </AuthField>
-            <PasswordMeter password={form.password} />
-            <label className="flex cursor-pointer items-start gap-3 text-sm text-rr-on-canvas-soft">
-              <input
-                type="checkbox"
-                checked={form.agreed}
-                onChange={(e) => setForm({ ...form, agreed: e.target.checked })}
-                className="mt-0.5 size-4 shrink-0 accent-[var(--color-rr-recovered)]"
-              />
-              <span>
-                I agree to the <TermsLinks />.
-              </span>
-            </label>
 
             {status.kind === "error" && <Notice tone="error">{status.text}</Notice>}
 
-            <button type="submit" disabled={busy} className={`${PRIMARY_BUTTON} mt-2`}>
+            <button type="submit" disabled={busy} className={`${PRIMARY_BUTTON} mt-1`}>
               {busy ? "Creating your account…" : "Create account"} {!busy && <ArrowRight size={18} aria-hidden />}
             </button>
+            <p className="text-center text-xs text-rr-on-canvas-soft">
+              By continuing, with email, Google or Apple, you agree to the <TermsLinks />.
+            </p>
           </form>
         </>
       )}
@@ -141,19 +130,20 @@ export const SignupPage = () => {
   );
 };
 
-const PasswordMeter = ({ password }: { password: string }) => {
+/** A small four-step bar beside the Password label, so it costs no extra row. */
+const PasswordStrength = ({ password }: { password: string }) => {
   if (!password) return null;
   const score = [password.length >= 8, password.length >= 12, /[A-Z]/.test(password) && /[a-z]/.test(password), /\d|[^\w]/.test(password)].filter(Boolean).length;
   const label = ["Too short", "Okay", "Good", "Strong", "Very strong"][score];
   const colour = score <= 1 ? "bg-rr-missed" : score === 2 ? "bg-rr-risk" : "bg-rr-recovered";
   return (
-    <div className="-mt-1 flex items-center gap-3" aria-live="polite">
-      <div className="flex flex-1 gap-1.5" aria-hidden>
+    <span className="flex items-center gap-2 text-sm font-normal text-rr-on-canvas-soft" aria-live="polite">
+      <span className="flex gap-1" aria-hidden>
         {[0, 1, 2, 3].map((index) => (
-          <span key={index} className={`h-1.5 flex-1 rounded-full ${index < score ? colour : "bg-rr-glass-strong"}`} />
+          <span key={index} className={`h-1.5 w-5 rounded-full ${index < score ? colour : "bg-rr-glass-strong"}`} />
         ))}
-      </div>
-      <span className="text-sm text-rr-on-canvas-soft">{label}</span>
-    </div>
+      </span>
+      {label}
+    </span>
   );
 };

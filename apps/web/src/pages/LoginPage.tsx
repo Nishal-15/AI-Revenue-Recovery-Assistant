@@ -63,7 +63,7 @@ export const LoginPage = () => {
         <>
           <SocialSignIn />
           <OrDivider />
-          <form className="flex flex-col gap-4" onSubmit={signIn}>
+          <form className="flex flex-col gap-3.5" onSubmit={signIn}>
             <AuthField label="Email">
               <input
                 type="email"
@@ -105,7 +105,7 @@ export const LoginPage = () => {
 
             {status.kind === "error" && <Notice tone="error">{status.text}</Notice>}
 
-            <button type="submit" disabled={busy} className={`${PRIMARY_BUTTON} mt-2`}>
+            <button type="submit" disabled={busy} className={`${PRIMARY_BUTTON} mt-1`}>
               {busy ? "Signing in…" : "Sign in"} {!busy && <ArrowRight size={18} aria-hidden />}
             </button>
             <button

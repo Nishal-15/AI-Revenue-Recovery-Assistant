@@ -4,7 +4,7 @@ import { Link } from "../lib/router";
 import { connectionProblem, type ConnectionProblem } from "../lib/supabase";
 import { BRAND } from "../lib/brand";
 import { ThemeToggle } from "./ThemeToggle";
-import { ReturnOrbit } from "./ReturnOrbit";
+import { MessageCircleHeart, SearchCheck, TrendingUp } from "lucide-react";
 
 export type AuthTab = "login" | "signup";
 
@@ -18,41 +18,37 @@ type AuthLayoutProps = {
 };
 
 /**
- * One floating card on the brand canvas, with the "patients returning" orbit beside it on wide screens.
- * Sign in and Create account share the card and switch with the pill at the top.
+ * Words on the left (what the product does), one compact card on the right.
+ * Sized to fit a laptop screen without scrolling; it only scrolls when the window is very short.
  */
 export const AuthLayout = ({ title, subtitle, tab, children, footer }: AuthLayoutProps) => (
-  <div className="relative min-h-screen overflow-hidden">
-    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(45rem_35rem_at_15%_20%,rgb(79_165_138/0.20),transparent_60%),radial-gradient(35rem_30rem_at_95%_95%,rgb(228_141_163/0.10),transparent_60%)]" />
+  <div className="relative min-h-screen">
+    <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(45rem_35rem_at_15%_20%,rgb(79_165_138/0.20),transparent_60%),radial-gradient(35rem_30rem_at_95%_95%,rgb(228_141_163/0.10),transparent_60%)]" />
 
-    <div className="relative mx-auto grid min-h-screen max-w-7xl gap-10 px-5 py-6 sm:px-8 lg:grid-cols-[minmax(0,1fr)_31rem] lg:gap-16 lg:px-12">
-      <section className="hidden flex-col py-4 lg:flex" aria-hidden={false}>
-        <Link href="/" aria-label={`${BRAND} home`} className="self-start">
+    <div className="relative mx-auto grid min-h-screen max-w-7xl gap-8 px-5 sm:px-8 lg:grid-cols-[minmax(0,1fr)_29rem] lg:gap-20 lg:px-12">
+      <section className="relative hidden flex-col justify-center py-8 lg:flex">
+        <Link href="/" aria-label={`${BRAND} home`} className="absolute top-8 left-0">
           <Logo />
         </Link>
-        <div className="my-auto flex justify-center">
-          <ReturnOrbit />
-        </div>
+        <BrandStory />
       </section>
 
-      <main className="flex flex-col py-4">
-        <div className="lg:hidden">
+      <main className="flex flex-col justify-center py-4">
+        <div className="mb-6 lg:hidden">
           <Link href="/" aria-label={`${BRAND} home`}>
             <Logo />
           </Link>
         </div>
 
-        <div className="my-auto w-full py-10">
-          <div className="rounded-[2rem] border border-rr-canvas-line bg-rr-canvas-raised/70 p-6 shadow-rr-lift backdrop-blur-xl sm:p-9">
-            {tab && <AuthTabs active={tab} />}
-            <h1 className={`${tab ? "mt-8" : ""} text-[2.1rem] leading-tight font-light tracking-tight`}>{title}</h1>
-            {subtitle && <p className="mt-1.5 text-rr-on-canvas-soft">{subtitle}</p>}
-            <div className="mt-7">{children}</div>
-          </div>
-          {footer && <div className="mt-6 text-center text-sm text-rr-on-canvas-soft">{footer}</div>}
+        <div className="rounded-[1.75rem] border border-rr-canvas-line bg-rr-canvas-raised/70 p-6 shadow-rr-lift backdrop-blur-xl sm:p-7">
+          {tab && <AuthTabs active={tab} />}
+          <h1 className={`${tab ? "mt-6" : ""} text-3xl leading-tight font-light tracking-tight`}>{title}</h1>
+          {subtitle && <p className="mt-1 text-rr-on-canvas-soft">{subtitle}</p>}
+          <div className="mt-6">{children}</div>
         </div>
+        {footer && <div className="mt-4 text-center text-sm text-rr-on-canvas-soft">{footer}</div>}
 
-        <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-rr-on-canvas-soft">
+        <div className="mt-5 flex flex-wrap items-center justify-center gap-4 text-sm text-rr-on-canvas-soft">
           <ThemeToggle />
           <p>
             <Link href="/privacy" className="hover:text-rr-on-canvas">
@@ -68,6 +64,46 @@ export const AuthLayout = ({ title, subtitle, tab, children, footer }: AuthLayou
         </div>
       </main>
     </div>
+  </div>
+);
+
+const POINTS = [
+  { icon: SearchCheck, title: "Finds who is slipping away", text: "Unanswered enquiries, unconfirmed appointments and treatment nobody booked." },
+  { icon: MessageCircleHeart, title: "Reminds them kindly on WhatsApp", text: "At sensible hours, never too often, and only to patients who agreed." },
+  { icon: TrendingUp, title: "Shows what came back", text: "Every returning booking and what it was worth, month by month." },
+] as const;
+
+/** The left side: what the product does, in plain words. */
+const BrandStory = () => (
+  <div className="max-w-lg">
+    <p className="text-sm font-semibold tracking-[0.2em] text-rr-recovered uppercase">For dental clinics</p>
+    <h2 className="mt-4 text-5xl leading-[1.08] font-light tracking-tight text-balance">
+      Every missed booking, gently brought back.
+    </h2>
+    <p className="mt-5 text-lg text-pretty text-rr-on-canvas-soft">
+      {BRAND} keeps an eye on your enquiries, appointments and treatment plans, and reminds patients before they
+      quietly drift away.
+    </p>
+    <ul className="mt-9 flex flex-col gap-5">
+      {POINTS.map(({ icon: Icon, title, text }) => (
+        <li key={title} className="flex gap-4">
+          <span className="grid size-11 shrink-0 place-items-center rounded-2xl border border-rr-canvas-line bg-rr-glass text-rr-recovered">
+            <Icon size={20} aria-hidden />
+          </span>
+          <span>
+            <span className="block font-semibold">{title}</span>
+            <span className="block text-rr-on-canvas-soft">{text}</span>
+          </span>
+        </li>
+      ))}
+    </ul>
+    <p className="mt-10 flex flex-wrap gap-x-5 gap-y-1 text-sm text-rr-on-canvas-soft">
+      <span>Private to your clinic</span>
+      <span aria-hidden>·</span>
+      <span>No messages at night</span>
+      <span aria-hidden>·</span>
+      <span>Patients can reply STOP</span>
+    </p>
   </div>
 );
 
@@ -102,20 +138,20 @@ const AuthTabs = ({ active }: { active: AuthTab }) => (
 
 /** "or continue with email" between the social buttons and the form. */
 export const OrDivider = ({ children = "or with email" }: { children?: ReactNode }) => (
-  <div className="my-6 flex items-center gap-3 text-xs tracking-wide text-rr-on-canvas-soft uppercase" aria-hidden>
+  <div className="my-5 flex items-center gap-3 text-xs tracking-wide text-rr-on-canvas-soft uppercase" aria-hidden>
     <span className="h-px flex-1 bg-rr-canvas-line" /> {children} <span className="h-px flex-1 bg-rr-canvas-line" />
   </div>
 );
 
 /** Shared field + button styles for the dark auth pages. */
 export const AUTH_INPUT =
-  "h-12 w-full rounded-2xl border border-rr-canvas-line bg-rr-glass px-4 text-rr-on-canvas outline-none transition-colors placeholder:text-rr-on-canvas-soft/70 focus:border-rr-recovered focus:bg-rr-glass-strong";
+  "h-11 w-full rounded-2xl border border-rr-canvas-line bg-rr-glass px-4 text-rr-on-canvas outline-none transition-colors placeholder:text-rr-on-canvas-soft/70 focus:border-rr-recovered focus:bg-rr-glass-strong";
 
 export const PRIMARY_BUTTON =
-  "inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-rr-cta font-semibold text-rr-on-cta transition-[background-color,transform] hover:bg-rr-cta-hover active:scale-[0.98] disabled:opacity-60";
+  "inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-rr-cta font-semibold text-rr-on-cta transition-[background-color,transform] hover:bg-rr-cta-hover active:scale-[0.98] disabled:opacity-60";
 
 export const SECONDARY_BUTTON =
-  "inline-flex h-12 w-full items-center justify-center gap-2 rounded-full border border-rr-canvas-line font-semibold transition-colors hover:bg-rr-glass-strong disabled:opacity-60";
+  "inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-rr-canvas-line font-semibold transition-colors hover:bg-rr-glass-strong disabled:opacity-60";
 
 export const AuthField = ({ label, children, aside }: { label: string; children: ReactNode; aside?: ReactNode }) => (
   <label className="flex flex-col gap-1.5">

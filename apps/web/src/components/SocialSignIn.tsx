@@ -77,7 +77,7 @@ export const SocialSignIn = () => {
               type="button"
               onClick={() => start(provider)}
               disabled={busy !== null}
-              className="inline-flex h-12 items-center justify-center gap-2.5 rounded-full border border-rr-canvas-line bg-rr-glass font-semibold transition-[background-color,transform] hover:bg-rr-glass-strong active:scale-[0.98] disabled:opacity-60"
+              className="inline-flex h-11 items-center justify-center gap-2.5 rounded-full border border-rr-canvas-line bg-rr-glass font-semibold transition-[background-color,transform] hover:bg-rr-glass-strong active:scale-[0.98] disabled:opacity-60"
             >
               <Icon />
               {busy === provider ? "Opening…" : PROVIDERS[provider].label}
