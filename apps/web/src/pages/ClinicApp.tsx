@@ -1,9 +1,10 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { RevenueRecovery } from "@dental-os/revenue-recovery";
 import { AppHeader } from "../components/AppHeader";
+import { SignatureIntro, shouldShowIntro } from "../components/SignatureIntro";
 import { Link, navigate } from "../lib/router";
-import { useMembership, useSession } from "../lib/session";
+import { useMembership, useSession, type Membership, type MembershipState } from "../lib/session";
 import { supabase } from "../lib/supabase";
 
 export const ClinicApp = () =>
@@ -31,10 +32,33 @@ const SignedInArea = ({ client }: { client: SupabaseClient }) => {
 
   if (!session) return <CenteredNote>Loading…</CenteredNote>;
   const ready = membership.kind === "ready" ? membership.membership : null;
+  return <ClinicScreens ready={ready} membership={membership} email={session.user.email} client={client} />;
+};
+
+const ClinicScreens = ({
+  ready,
+  membership,
+  email,
+  client,
+}: {
+  ready: Membership | null;
+  membership: MembershipState;
+  email: string | undefined;
+  client: SupabaseClient;
+}) => {
+  // Decided once per clinic: the intro plays over the app while today's data loads underneath.
+  const [introFor, setIntroFor] = useState<string | null>(null);
+  const [introDone, setIntroDone] = useState(false);
+  useEffect(() => {
+    if (ready && introFor === null) setIntroFor(shouldShowIntro(ready.clinicId) ? ready.clinicId : "");
+  }, [ready, introFor]);
 
   return (
     <div className="min-h-screen">
-      <AppHeader clinicName={ready?.clinicName} staffName={ready?.staffName} email={session.user.email} />
+      {ready && introFor === ready.clinicId && !introDone && (
+        <SignatureIntro clinicId={ready.clinicId} clinicName={ready.clinicName} staffName={ready.staffName} onDone={() => setIntroDone(true)} />
+      )}
+      <AppHeader clinicName={ready?.clinicName} staffName={ready?.staffName} email={email} />
       {membership.kind === "loading" && <AppSkeleton />}
       {membership.kind === "error" && <CenteredNote>Couldn&apos;t open your clinic. {membership.text}</CenteredNote>}
       {ready && (

@@ -75,6 +75,10 @@ Look and branding:
 - Dark and light themes. Each person picks theirs from the account menu, the sign-in pages or the landing-page
   footer (or "Same as device"); it is remembered on that device. Dark is the default.
 - `VITE_BRAND_NAME` renames the product everywhere on the website. Set it in `apps/web/.env` and in Cloudflare Pages.
+- Your logo: put the file in `apps/web/public/brand/` and set `VITE_LOGO_URL=/brand/logo.svg` (add
+  `VITE_LOGO_INCLUDES_NAME=true` if the logo already shows the name). Until then the built-in mark is the placeholder.
+- After sign-in, a short welcome writes the clinic's name in a signature script (about 3 seconds, once per sign-in,
+  skipped with any click or key, and never shown to people whose device asks for reduced motion).
 - Branded sign-up, sign-in, password and invite emails are in `supabase/email-templates/` with paste-in steps.
 
 How people get in:

@@ -15,6 +15,12 @@ const initials = (name: string) =>
     .join("") || "?";
 
 export const signOut = async () => {
+  try {
+    // The welcome intro plays again after the next sign-in.
+    Object.keys(sessionStorage).filter((key) => key.startsWith("rr-intro-")).forEach((key) => sessionStorage.removeItem(key));
+  } catch {
+    // Storage blocked: nothing to clear.
+  }
   await supabase?.auth.signOut();
   navigate("/login");
 };
